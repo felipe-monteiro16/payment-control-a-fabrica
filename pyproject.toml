@@ -5,14 +5,15 @@ description = "The main goal is to automate payments made at the Fábrica."
 authors = [
     {name = "Felipe Monteiro"}
 ]
-license = {text = "n"}
+package-mode = false
+license = {text = "MIT"}
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "python-dotenv (>=1.1.0,<2.0.0)",
-    "dotenv (>=0.9.9,<0.10.0)"
+    "dotenv (>=0.9.9,<0.10.0)",
+    "splitwise (>=3.0.0,<4.0.0)"
 ]
-
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
