@@ -1,6 +1,7 @@
 """Splitwise API Python Client"""
 import json
 import os
+import sys
 from dotenv import load_dotenv
 from splitwise import Splitwise
 from splitwise.exception import SplitwiseUnauthorizedException
@@ -12,28 +13,28 @@ def pause() -> None:
     os.system('cls' if os.name == 'nt' else 'clear')
 
 
-def get_access_token() -> None:
+def save_access_token(token: str) -> str:
+    """Save the access token to a file."""
+    with open("access_token.json", "w", encoding="utf-8") as f:
+        json.dump(token, f)
+
+
+def get_access_token(clt) -> None:
     """Get the access token from the user.
     The user will be redirected to a URL to authorize the application."""
 
     # Get the authorization URL
-    url, oauth_token_secret = client.getAuthorizeURL()
+    url, oauth_token_secret = clt.getAuthorizeURL()
 
     # Print the URL to the console
     print("Please visit this URL to authorize the application: ", url)
     oauth_token = url.split("oauth_token=")[-1]
     oauth_verifier = input("Enter the oauth_verifier from the URL: ")
     pause()
-    access_token = client.getAccessToken(
+    access_token = clt.getAccessToken(
         oauth_token, oauth_token_secret, oauth_verifier
     )
     save_access_token(access_token)
-
-
-def save_access_token(token: str) -> str:
-    """Save the access token to a file."""
-    with open("access_token.json", "w", encoding="utf-8") as f:
-        json.dump(token, f)
 
 
 def load_access_token() -> str:
@@ -44,9 +45,8 @@ def load_access_token() -> str:
         with open("access_token.json", "r", encoding="utf-8") as f:
             token = json.load(f)
             return token
-    else:
-        print("Access token file not found.")
-        return None
+    print("Access token file not found.")
+    return None
 
 
 def initialize_client() -> str:
@@ -58,48 +58,68 @@ def initialize_client() -> str:
     consumer_secret = os.getenv("CONSUMER_SECRET")
     api_key = os.getenv("API_KEY")
 
-    # Check if the environment variables are set
-    if not consumer_key or not consumer_secret or not api_key:
-        print("Please set the environment variables. More details on README.md")
-        return None
-
     # Set the Splitwise client
     clt = Splitwise(consumer_key, consumer_secret, api_key=api_key)
+
+    # Check if the environment variables are set
+    try:
+        clt.getCurrentUser()
+    except SplitwiseUnauthorizedException as e:
+        print("Unauthorized access. Please set the correct keys on .env file.")
+        print(e)
+        sys.exit()
     return clt
 
 
-# Initialize the Splitwise client
-client = initialize_client()
-if client is not None:
+def check_file_access_token(clt):
+    """Check if the access token file exists."""
+    if os.path.exists("access_token.json"):
+        return True
+    print("Access token file not found.")
+    print("Let's get a new access token.")
+    get_access_token(clt)
+    if os.path.exists("access_token.json"):
+        return True
+    print("Error: Get access token failed.")
+    sys.exit()
+
+
+def verify_access_token(clt):
+    """Verify if the access token is valid."""
+    try:
+        current_user = clt.getCurrentUser()
+        print(f" User first name: {current_user.first_name}")
+        print("Access token is valid.")
+        return True
+    except SplitwiseUnauthorizedException as e:
+        print("Access token is invalid.")
+        print("Error: ", e)
+        print("Let's get a new access token.")
+        get_access_token(clt)
+        if os.path.exists("access_token.json"):
+            print("Access token updated successfully.")
+            return True
+        print("Error: Get access token failed.")
+        sys.exit()
+
+
+def config()-> None:
+    """Configure the Splitwise client."""
+    # Initialize the Splitwise client
+    client = initialize_client()
     print("Client initialized successfully.")
 
     # Check if the access token file exists
-    if os.path.exists("access_token.json"):
-        acess_token = load_access_token()
-        client.setAccessToken(acess_token)
-    else:
-        get_access_token()
-else:
-    print("Client initialization failed.")
+    check_file_access_token(client)
+
+    # Verify if the access token is valid
+    verify_access_token(client)
+
+    # Load the access token from the file
+    acess_token = load_access_token()
+    client.setAccessToken(acess_token)
+
+    print("Access token loaded successfully.")
 
 
-# Usage example
-
-
-try:
-    # Get the current user
-    current_user = client.getCurrentUser()
-    print("User ID: ", current_user.id)
-    print("User Name: ", current_user.first_name)
-
-
-
-except SplitwiseUnauthorizedException as e:
-    print("Access token is invalid.")
-    print("Error: ", e)
-
-    # Reauthorize the application
-    get_access_token()
-    print("Access token updated successfully.")
-    print("Please run the program again.")
-    pause()
+config()
