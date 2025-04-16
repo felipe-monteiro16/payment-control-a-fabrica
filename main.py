@@ -37,16 +37,25 @@ def get_access_token(clt) -> None:
     save_access_token(access_token)
 
 
-def load_access_token() -> str:
-    """Load the access token from a file."""
+def load_access_token(clt) -> str:
+    """Check if the access token file exists, verify if the access token is valid,
+    and load the access token from the file."""
+    # Check if the access token file exists
+    check_file_access_token(clt)
 
-    # Check if the file exists
-    if os.path.exists("access_token.json"):
+    # Load the access token from the file
+    try:
         with open("access_token.json", "r", encoding="utf-8") as f:
             token = json.load(f)
-            return token
-    print("Access token file not found.")
-    return None
+            clt.setAccessToken(token)
+            # Verify if the access token is valid
+            verify_access_token(clt)
+    except json.JSONDecodeError as e:
+        print("Load access token failed.")
+        print(f"Error: {e}")
+        print("Delete the access token file and try again.\n")
+        sys.exit()
+    return token
 
 
 def initialize_client() -> str:
@@ -65,22 +74,25 @@ def initialize_client() -> str:
     try:
         clt.getCurrentUser()
     except SplitwiseUnauthorizedException as e:
-        print("Unauthorized access. Please set the correct keys on .env file.")
+        print("Unauthorized access. Please set the correct keys on .env file.\n")
         print(e)
         sys.exit()
+    print("\nEnvironment variables loaded successfully.\n")
+    print("Client initialized successfully.\n")
     return clt
 
 
 def check_file_access_token(clt):
     """Check if the access token file exists."""
     if os.path.exists("access_token.json"):
+        print("Access token file found.\n")
         return True
     print("Access token file not found.")
-    print("Let's get a new access token.")
+    print("Let's get a new access token.\n")
     get_access_token(clt)
     if os.path.exists("access_token.json"):
         return True
-    print("Error: Get access token failed.")
+    print("Error: Get access token failed.\n")
     sys.exit()
 
 
@@ -88,38 +100,31 @@ def verify_access_token(clt):
     """Verify if the access token is valid."""
     try:
         current_user = clt.getCurrentUser()
-        print(f" User first name: {current_user.first_name}")
-        print("Access token is valid.")
-        return True
+        print(f" User name: {current_user.first_name}")
     except SplitwiseUnauthorizedException as e:
         print("Access token is invalid.")
-        print("Error: ", e)
-        print("Let's get a new access token.")
+        print(f"Error: {e}\n")
+        print("Let's get a new access token.\n")
         get_access_token(clt)
         if os.path.exists("access_token.json"):
-            print("Access token updated successfully.")
+            print("Access token updated successfully.\n")
             return True
-        print("Error: Get access token failed.")
+        print("Error: Get access token failed.\n")
         sys.exit()
+    print("Access token is valid.\n")
+    return True
 
 
 def config()-> None:
     """Configure the Splitwise client."""
     # Initialize the Splitwise client
     client = initialize_client()
-    print("Client initialized successfully.")
-
-    # Check if the access token file exists
-    check_file_access_token(client)
-
-    # Verify if the access token is valid
-    verify_access_token(client)
 
     # Load the access token from the file
-    acess_token = load_access_token()
-    client.setAccessToken(acess_token)
+    access_token = load_access_token(client)
+    client.setAccessToken(access_token)
 
-    print("Access token loaded successfully.")
+    print("Access token loaded successfully.\n")
 
 
 config()
