@@ -37,6 +37,39 @@ def get_access_token(clt) -> None:
     save_access_token(access_token)
 
 
+def check_file_access_token(clt):
+    """Check if the access token file exists."""
+    if os.path.exists("access_token.json"):
+        print("Access token file found.\n")
+        return True
+    print("Access token file not found.")
+    print("Let's get a new access token.\n")
+    get_access_token(clt)
+    if os.path.exists("access_token.json"):
+        return True
+    print("Error: Get access token failed.\n")
+    sys.exit()
+
+
+def verify_access_token(clt):
+    """Verify if the access token is valid."""
+    try:
+        current_user = clt.getCurrentUser()
+        print(f" User name: {current_user.first_name}")
+    except SplitwiseUnauthorizedException as e:
+        print("Access token is invalid.")
+        print(f"Error: {e}\n")
+        print("Let's get a new access token.\n")
+        get_access_token(clt)
+        if os.path.exists("access_token.json"):
+            print("Access token updated successfully.\n")
+            return True
+        print("Error: Get access token failed.\n")
+        sys.exit()
+    print("Access token is valid.\n")
+    return True
+
+
 def load_access_token(clt) -> str:
     """Check if the access token file exists, verify if the access token is valid,
     and load the access token from the file."""
@@ -80,39 +113,6 @@ def initialize_client() -> str:
     print("\nEnvironment variables loaded successfully.\n")
     print("Client initialized successfully.\n")
     return clt
-
-
-def check_file_access_token(clt):
-    """Check if the access token file exists."""
-    if os.path.exists("access_token.json"):
-        print("Access token file found.\n")
-        return True
-    print("Access token file not found.")
-    print("Let's get a new access token.\n")
-    get_access_token(clt)
-    if os.path.exists("access_token.json"):
-        return True
-    print("Error: Get access token failed.\n")
-    sys.exit()
-
-
-def verify_access_token(clt):
-    """Verify if the access token is valid."""
-    try:
-        current_user = clt.getCurrentUser()
-        print(f" User name: {current_user.first_name}")
-    except SplitwiseUnauthorizedException as e:
-        print("Access token is invalid.")
-        print(f"Error: {e}\n")
-        print("Let's get a new access token.\n")
-        get_access_token(clt)
-        if os.path.exists("access_token.json"):
-            print("Access token updated successfully.\n")
-            return True
-        print("Error: Get access token failed.\n")
-        sys.exit()
-    print("Access token is valid.\n")
-    return True
 
 
 def config()-> None:
