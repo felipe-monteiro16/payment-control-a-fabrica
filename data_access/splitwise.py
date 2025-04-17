@@ -3,7 +3,7 @@
 
 def get_all_users(client):
     """Get all users from Splitwise API"""
-    users = list()
+    users = []
     friends = client.getFriends()
     for friend in friends:
         friend.id = friend.id or "Unknown"

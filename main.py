@@ -1,17 +1,23 @@
 """Splitwise API Python Client"""
+import typer
 from data_access import DataAccess
+from cli import show_all_users
+
+app = typer.Typer()
 
 
-def main():
-    """Main function to run the Splitwise API client."""
+@app.command()
+def get_users() -> None:
+    """Get all users from Splitwise API"""
     # Initialize the Data Access Layer
     data_access = DataAccess()
 
     # Get users from Splitwise API
     users = data_access.get_all_users()
-    for user in users:
-        print(f"User ID: {user['id']}, Name: {user['first_name']} {user['last_name']}")
+
+    # Show users in the CLI
+    show_all_users(users)
 
 
 if __name__ == "__main__":
-    main()
+    app()
