@@ -19,5 +19,10 @@ def get_users() -> None:
     show_all_users(users)
 
 
+@app.command()
+def get_user_debts() -> None:
+    """Get all debts for a user"""
+
+
 if __name__ == "__main__":
     app()
