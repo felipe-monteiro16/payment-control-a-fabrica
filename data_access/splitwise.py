@@ -20,7 +20,7 @@ def get_all_users(client):
 
 
 def get_user_debts(client, friend_id):
-    """Get the expenses from the last month for a specific friend."""
+    """Get all user debts from the last month"""
     valid_expenses_cont = 0
     friend_balances = []
     expenses = client.getExpenses(offset=0, limit=50) # What is the limit?

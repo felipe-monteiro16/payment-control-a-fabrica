@@ -21,7 +21,7 @@ def get_users() -> None:
 
 @app.command()
 def get_user_debts(user_id: int) -> None:
-    """Get all debts for a user"""
+    """Get all user debts from the last month"""
     # Initialize the Data Access Layer
     data_access = DataAccess()
 

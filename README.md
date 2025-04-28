@@ -32,20 +32,19 @@ After these steps, your project will be ready to run.
 
 # Running the project
 
+### First Running
+
 To get the access of the `Splitwise API`, it will be need to do some steps on first run.
 
 In the project root, open the terminal and run:
 ```
-poetry run main.py
+poetry run main.py get-users
 ```
 
-Temporary: If it gets error, try:
+Temporary: If it gets an error, try:
 ```
-poetry run main.py --no-root
+poetry run main.py get-users --no-root
 ```
-
-### First Running
-
 
 After running, on browser, open the link that appeared on terminal and authorize the access.
 
@@ -61,6 +60,33 @@ params[:oauth_verifier] is <oauth_verifier_here>
 
 And paste on terminal.
 
-The tokens will be saved on `access_token.json` file. If these tokens expire, you'll need to do this process again to keep the acess of the `Splitwise API`.
+The tokens will be saved on `access_token.json` file. If these tokens expire, you'll need to do this process again to keep the access of the `Splitwise API`.
 
-Done!
+Done! If everything went well, will have appeared the `users list` on terminal.
+
+## Commands
+
+To run the project, use `poetry run` followed by `main.py` and the desired command.
+
+For more information, use:
+```
+poetry run main.py --help
+```
+
+### Command List
+
+* `get-users`: Get all users from Splitwise API.
+
+    Usage example:
+    ```
+    poetry run main.py get-users
+    ```
+    The users name and ID will be displayed.
+
+* `get-user-debts`: Get all user debts from the last month.
+
+    Usage example:
+    ```
+    poetry run main.py get-user-debts USER-ID
+    ```
+    If the user has debts, the name and amount of the debt will be displayed.

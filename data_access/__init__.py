@@ -15,5 +15,5 @@ class DataAccess:
 
 
     def get_user_debts(self, user_id):
-        """Get user debts from Splitwise API"""
+        """Get all user debts from the last month"""
         return get_user_debts(self.client, user_id)
