@@ -5,3 +5,12 @@ def show_all_users(users: list[dict[str, str]]) -> None:
     """Get all users from Splitwise API"""
     for user in users:
         print(f"User ID: {user['id']}, Name: {user['first_name']} {user['last_name']}")
+
+
+def show_user_debts(debts: list[dict[str, str]]) -> None:
+    """Get all debts for a user"""
+    if not debts:
+        print("No debts found.")
+        return
+    for debt in debts:
+        print(f"Debt: {debt['name']} | Balance: {debt['balance']}")
