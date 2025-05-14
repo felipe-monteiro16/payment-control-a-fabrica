@@ -2,5 +2,7 @@
 access_token.json
 tests.py
 __pycache__/
+*.pyc
 data_access/__pycache__/
+*.pyc
 tests2.py
