@@ -209,6 +209,24 @@ files = [
 ]
 
 [[package]]
+name = "mercadopago"
+version = "2.3.0"
+description = "Mercadopago SDK module for Payments integration"
+optional = false
+python-versions = ">=3.7"
+groups = ["main"]
+files = [
+    {file = "mercadopago-2.3.0-py3-none-any.whl", hash = "sha256:2502cb005ab90343d60e577107b422daeff27511f85c45a7bf0784ac2083f2c7"},
+    {file = "mercadopago-2.3.0.tar.gz", hash = "sha256:8537e9de5d987b545841b05bb35675553b22e661b96ffc4fb178ffba846ff2d7"},
+]
+
+[package.dependencies]
+requests = "*"
+
+[package.extras]
+testing = ["unittest"]
+
+[[package]]
 name = "oauthlib"
 version = "3.2.2"
 description = "A generic, spec-compliant, thorough implementation of the OAuth request-signing logic"
@@ -394,4 +412,4 @@ zstd = ["zstandard (>=0.18.0)"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11"
-content-hash = "374b2fb9b75a395a885591f1ee85c3a803b4c68c23d39fd0b9bfb7a25bfeb092"
+content-hash = "e1723bb7d2b936e0db20d8f390eef1c8ec11ffca894388c55b7c16610fff3deb"

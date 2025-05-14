@@ -1,7 +1,7 @@
 """Splitwise API Python Client"""
 import typer
 from data_access import DataAccess
-from cli import show_all_users, show_user_debts
+from cli import show_all_users, show_user_debts, show_payment_link
 
 app = typer.Typer()
 
@@ -31,6 +31,18 @@ def get_user_debts(user_id: int) -> None:
     # Show user debts in the CLI
     show_user_debts(user_debts)
 
+
+@app.command()
+def get_payment_link(user_id: int,) -> None:
+    """Get the payment link for the given user_id."""
+    # Initialize the Data Access Layer
+    data_access = DataAccess()
+
+    # Create payment link
+    payment_link, payment_items = data_access.get_payment_link(user_id)
+
+    # Show payment link in the CLI
+    show_payment_link(payment_link, payment_items)
 
 if __name__ == "__main__":
     #get_user_debts(30400274)

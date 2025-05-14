@@ -12,7 +12,12 @@ dependencies = [
     "python-dotenv (>=1.1.0,<2.0.0)",
     "dotenv (>=0.9.9,<0.10.0)",
     "splitwise (>=3.0.0,<4.0.0)",
-    "typer (>=0.15.2,<0.16.0)"
+    "typer (>=0.15.2,<0.16.0)",
+    "mercadopago (>=2.3.0,<3.0.0)"
+]
+
+packages = [
+    { include = "payment_control_a_fabrica" }
 ]
 
 [build-system]
