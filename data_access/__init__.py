@@ -15,5 +15,5 @@ class DataAccess:
 
 
     def get_user_debts(self, user_id):
-        """Get all user debts from the last month"""
+        """Get user debts from the last month by ID."""
         return get_user_debts(self.client, user_id)
