@@ -18,14 +18,30 @@ def show_user_debts(debts: list[dict[str, float]]) -> None:
 
 def show_payment_link(payment_link: str, payment_items: list[dict[str, float]]) -> None:
     """Show payment link and items"""
-    print(f"Payment Link: {payment_link}")
-    print("Items:")
-    a = 15
-    b = 8
-    print("+-","-" * (a+b),"-+")
-    print(f"| {'Description': ^15} | {'Value': ^8} |")
-    print("+-","-" * (a+b),"-+")
+    description_width = 20
+    value_width = 8
+    value_items_sum = sum(item["value"] for item in payment_items)
+
+
+    def generate_table_line(char: str) -> str:
+        """Generate a table line with the given character"""
+        return "+----" + char * (description_width + value_width) + "-+"
+
+
+    # Print the payment link
+    print(generate_table_line("-"))
+    print(f"\nPayment Link: {payment_link}\n")
+    print(generate_table_line("-"))
+
+    # Print the payment items
+    print("Items:\n")
+    print(generate_table_line("-"))
+    print(f"| {'Description': ^{description_width}}|  {'Value': ^{value_width}} |")
+    print(generate_table_line("-"))
     for item in payment_items:
         # Format the item description and value
-        print(f"| {item['description']: <15}R$ {item['value']: >8} |")
-    print("+-","-" * (a+b),"-+")
+        print(f"| {item['description']: <{description_width}}R$ {item['value']: >{value_width}} |")
+    print(generate_table_line("-"))
+    print(f"| {'Total': <{description_width}}R$ {value_items_sum: >{value_width}} |")
+    print(generate_table_line("-"))
+    print("\n")

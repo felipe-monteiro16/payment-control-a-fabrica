@@ -83,10 +83,18 @@ poetry run main.py --help
     ```
     The users name and ID will be displayed.
 
-* `get-user-debts`: Get all user debts from the last month.
+* `get-user-debts`: Get user debts from the last month by ID.
 
     Usage example:
     ```
     poetry run main.py get-user-debts USER-ID
     ```
     If the user has debts, the name and amount of the debt will be displayed.
+
+* `get-payment-link`: Get the payment link for the given user_id.
+
+    Usage example:
+    ```
+    poetry run main.py get-payment-link USER-ID
+    ```
+    The payment link and the items table will be displayed.
