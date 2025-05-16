@@ -39,7 +39,8 @@ def get_payment_link(user_id: int,) -> None:
     data_access = DataAccess()
 
     # Create payment link
-    payment_link, payment_items = data_access.get_payment_link(user_id)
+    user_debts = data_access.get_user_debts(user_id)
+    payment_link, payment_items = data_access.get_payment_link(user_debts)
 
     # Show payment link in the CLI
     show_payment_link(payment_link, payment_items)

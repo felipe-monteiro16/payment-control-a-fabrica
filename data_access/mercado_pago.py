@@ -3,7 +3,6 @@ import os
 import sys
 from dotenv import load_dotenv
 import mercadopago
-from .splitwise import get_user_debts
 
 
 # Load environment variables from .env file
@@ -13,18 +12,17 @@ sdk = mercadopago.SDK(ACCESS_TOKEN)
 request_options = mercadopago.config.RequestOptions()
 
 
-def get_payment_link(client, user_id: int):
+def get_payment_link(client, user_debts):
     """Get the payment link for the given user_id."""
 
     # Get user debts from Splitwise API
-    user_debts = get_user_debts(client, user_id)
     if not user_debts:
         print("No debts found for the user.")
         sys.exit(1)
 
     # Calculate taxes
     taxe_percent: float = 0.0099
-    debts_sum = sum((debt["balance"] * -1) for debt in user_debts)
+    debts_sum = sum((debt["value"] * -1) for debt in user_debts)
     taxes = round(debts_sum * taxe_percent, 2)
 
     # Create preference data
@@ -53,9 +51,9 @@ def get_payment_link(client, user_id: int):
     for debt in user_debts:
         preference_data["items"].insert(0,# Insert at the beginning
             {
-                "title": debt["name"],
+                "title": debt["description"],
                 "quantity": 1,
-                "unit_price": round((debt["balance"] * -1), 2),
+                "unit_price": round((debt["value"] * -1), 2),
                 "currency_id": "BRL"
             }
         )
