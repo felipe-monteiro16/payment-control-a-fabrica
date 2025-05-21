@@ -1,8 +1,22 @@
 """Mercado Pago API integration for payment links."""
 import os
 import sys
+from dataclasses import dataclass
 from dotenv import load_dotenv
 import mercadopago
+
+
+@dataclass
+class UserBalance:
+    """Class to represent user balance."""
+    taxe_percent: float = 0.0099
+
+    def get_taxes(self, user_debts):
+        """Calculate taxes for the given user debts."""
+        # Calculate taxes
+        taxes = sum((debt["value"] * -1) for debt in user_debts)
+        taxes = round(taxes * self.taxe_percent, 2)
+        return taxes
 
 
 # Load environment variables from .env file
@@ -12,18 +26,14 @@ sdk = mercadopago.SDK(ACCESS_TOKEN)
 request_options = mercadopago.config.RequestOptions()
 
 
-def get_payment_link(client, user_debts):
+def get_payment_link(user_debts):
     """Get the payment link for the given user_id."""
-
-    # Get user debts from Splitwise API
     if not user_debts:
         print("No debts found for the user.")
         sys.exit(1)
 
-    # Calculate taxes
-    taxe_percent: float = 0.0099
-    debts_sum = sum((debt["value"] * -1) for debt in user_debts)
-    taxes = round(debts_sum * taxe_percent, 2)
+    user_balance = UserBalance()
+    taxes = user_balance.get_taxes(user_debts)
 
     # Create preference data
     preference_data = {
