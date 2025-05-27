@@ -33,7 +33,9 @@ def get_user_debts(client, friend_id):
             if user.id == friend_id:
                 balance = user.getNetBalance()
                 if balance: # Only append if there is a valid balance
-                    friend_balances.append({'description': expense.description, 'value': float(balance)})
+                    friend_balances.append(
+                        {'description': expense.description, 'value': float(balance)}
+                    )
 
         # Stop after 3 valid expenses
         if valid_expenses_cont == 3:
@@ -42,4 +44,5 @@ def get_user_debts(client, friend_id):
     # If we reach here, it means we didn't find 3 expenses for the friend
     if friend_balances:
         return friend_balances
+        # return UserBalances(friend_balances)
     return None

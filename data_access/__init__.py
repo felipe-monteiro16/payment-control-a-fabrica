@@ -19,6 +19,6 @@ class DataAccess:
         return get_user_debts(self.client, user_id)
 
 
-    def get_payment_link(self, user_id):
-        """Get the payment link for the given user_id."""
-        return get_payment_link(self.client, user_id)
+    def get_payment_link(self, user_debts):
+        """Get the payment link for the given user_debts."""
+        return get_payment_link(user_debts)

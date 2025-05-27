@@ -18,9 +18,9 @@ poetry install
 ```
 ### File `.env`
 
-In the project root, create an `.env` file to store the Splitwise API keys, you can get these keys from the project administrators.
+In the project root, create an `.env` file to store the Splitwise and Mercado Pago API keys, you can get these keys from the project administrators.
 
-The `.env` file have to contain this following environment variables.
+The `.env` file have to contain these following Splitwise environment variables.
 
 ```
 CONSUMER_KEY=consumer_key_here
@@ -28,7 +28,14 @@ CONSUMER_SECRET=consumer_secret_here
 API_KEY=api_key_here
 ```
 
+And the Mercado Pago Access Token:
+
+```
+ACCESS_TOKEN=mercado_pago_access_token_here
+```
+
 After these steps, your project will be ready to run.
+
 
 # Running the project
 
@@ -58,7 +65,7 @@ Copy the `oauth_verifier` that appears:
 params[:oauth_verifier] is <oauth_verifier_here>
 ``` 
 
-And paste on terminal.
+Paste on terminal and press ENTER.
 
 The tokens will be saved on `access_token.json` file. If these tokens expire, you'll need to do this process again to keep the access of the `Splitwise API`.
 
