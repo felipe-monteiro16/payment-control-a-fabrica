@@ -57,14 +57,10 @@ def verify_access_token(clt):
         current_user = clt.getCurrentUser()
         print(f" User name: {current_user.first_name}")
     except SplitwiseUnauthorizedException as e:
-        print("Access token is invalid.")
+        print("Failed Verify: Access token is invalid.")
         print(f"Error: {e}\n")
-        print("Let's get a new access token.\n")
-        get_access_token(clt)
-        if os.path.exists("access_token.json"):
-            print("Access token updated successfully.\n")
-            return True
-        print("Error: Get access token failed.\n")
+        print("Please delete the access token file and try again.\n")
+        os.remove("access_token.json")
         sys.exit()
     print("Access token is valid.\n")
     return True
@@ -102,15 +98,15 @@ def initialize_client() -> str:
 
     # Set the Splitwise client
     clt = Splitwise(consumer_key, consumer_secret, api_key=api_key)
+    print("\nEnvironment variables loaded successfully.\n")
 
     # Check if the environment variables are set
     try:
         clt.getCurrentUser()
     except SplitwiseUnauthorizedException as e:
-        print("Unauthorized access. Please set the correct keys on .env file.\n")
+        print("Unauthorized access. Please set the correct Splitwise keys on .env file.\n")
         print(e)
         sys.exit()
-    print("\nEnvironment variables loaded successfully.\n")
     print("Client initialized successfully.\n")
     return clt
 
