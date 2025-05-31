@@ -1,5 +1,5 @@
 """Splitwise API Python Client"""
-import typer
+import typer # type: ignore
 from data_access import DataAccess
 from cli import show_all_users, show_user_debts, show_payment_link
 

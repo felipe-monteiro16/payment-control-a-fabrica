@@ -2,9 +2,9 @@
 import json
 import os
 import sys
-from dotenv import load_dotenv
+from dotenv import load_dotenv # type: ignore
 from splitwise import Splitwise
-from splitwise.exception import SplitwiseUnauthorizedException
+from splitwise.exception import SplitwiseUnauthorizedException # type: ignore
 
 
 def pause() -> None:
@@ -29,7 +29,7 @@ def get_access_token(clt) -> None:
     # Print the URL to the console
     print("Please visit this URL to authorize the application: ", url)
     oauth_token = url.split("oauth_token=")[-1]
-    oauth_verifier = input("Enter the oauth_verifier from the URL: ")
+    oauth_verifier = input("Enter the oauth_verifier from the URL: ").strip()
     pause()
     access_token = clt.getAccessToken(
         oauth_token, oauth_token_secret, oauth_verifier
