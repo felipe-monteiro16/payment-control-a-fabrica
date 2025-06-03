@@ -15,7 +15,7 @@ def show_user_debts(debts: list[dict[str, float]]) -> None:
 
     description_width = 20
     value_width = 8
-    value_items_sum = sum(-1*item["value"] for item in debts)
+    value_items_sum = sum(abs(item["value"]) for item in debts)
 
 
     def generate_table_line(char: str) -> str:
@@ -30,7 +30,7 @@ def show_user_debts(debts: list[dict[str, float]]) -> None:
     print(generate_table_line("-"))
     for item in debts:
         # Format the item description and value
-        print(f"| {item['description']: <{description_width}}R$ {-1*item['value']: >{value_width}} |")
+        print(f"| {item['description']: <{description_width}}R$ {abs(item['value']): >{value_width}} |")
     print(generate_table_line("-"))
     print(f"| {'Total': <{description_width}}R$ {value_items_sum: >{value_width}} |")
     print(generate_table_line("-"))

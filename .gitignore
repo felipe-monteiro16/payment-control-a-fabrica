@@ -1,9 +1,15 @@
+# Ignore configuration files
 .env
 access_token.json
+
+# Ignore Python bytecode files
 __pycache__/
 *.pyc
 data_access/__pycache__/
 *.pyc
+venv/
+
+# Ignore Test files
 tests_mercado_pago.py
 tests_whatsapp.py
 tests_splitwise.py
