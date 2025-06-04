@@ -41,7 +41,7 @@ def show_payment_link(payment_link: str, payment_items: list[dict[str, float]]) 
     """Show payment link and items"""
     description_width = 20
     value_width = 8
-    value_items_sum = sum(item["value"] for item in payment_items)
+    value_items_sum = sum(abs(item["value"]) for item in payment_items)
 
 
     def generate_table_line(char: str) -> str:

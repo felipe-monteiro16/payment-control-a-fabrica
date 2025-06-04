@@ -13,7 +13,8 @@ dependencies = [
     "dotenv (>=0.9.9,<0.10.0)",
     "splitwise (>=3.0.0,<4.0.0)",
     "typer (>=0.15.2,<0.16.0)",
-    "mercadopago (>=2.3.0,<3.0.0)"
+    "mercadopago (>=2.3.0,<3.0.0)",
+    "requests (>=2.32.3,<3.0.0)"
 ]
 
 packages = [

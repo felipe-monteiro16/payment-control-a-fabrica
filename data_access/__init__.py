@@ -1,7 +1,7 @@
 """Data Access Layer for Splitwise API"""
 from .splitwise import get_all_users, get_user_debts
 from .splitwise_config import config
-from .mercado_pago import get_payment_link
+from .csv_contacts import get_number_from_csv
 
 class DataAccess:
     """Data Access Layer for Splitwise API"""
@@ -18,7 +18,6 @@ class DataAccess:
         """Get user debts from the last month by ID."""
         return get_user_debts(self.client, user_id)
 
-
-    def get_payment_link(self, user_debts):
-        """Get the payment link for the given user_debts."""
-        return get_payment_link(user_debts)
+    def get_user_contact(self, user_id):
+        """Get user contact information from CSV file."""
+        return get_number_from_csv(user_id)

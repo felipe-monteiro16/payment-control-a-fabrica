@@ -1,6 +1,7 @@
 """Splitwise API Python Client"""
 import typer # type: ignore
 from data_access import DataAccess
+from external_services import ExternalServices
 from cli import show_all_users, show_user_debts, show_payment_link
 
 app = typer.Typer()
@@ -37,13 +38,30 @@ def get_payment_link(user_id: int,) -> None:
     """Get the payment link for the given user_id."""
     # Initialize the Data Access Layer
     data_access = DataAccess()
+    external_services = ExternalServices()
 
     # Create payment link
     user_debts = data_access.get_user_debts(user_id)
-    payment_link, payment_items = data_access.get_payment_link(user_debts)
+    payment_link, payment_items = external_services.get_payment_link(user_debts)
 
     # Show payment link in the CLI
     show_payment_link(payment_link, payment_items)
+
+
+@app.command()
+def get_and_send_all(user_id: int) -> None:
+    """Get user debts and payment link, then send them to the user."""
+    # Initialize the Data Access Layer
+    data_access = DataAccess()
+    external_services = ExternalServices()
+
+    # Create payment link
+    user_debts = data_access.get_user_debts(user_id)
+    payment_link, payment_items = external_services.get_payment_link(user_debts)
+
+    # Send to the user
+    external_services.send_user(user_id,payment_link, payment_items)
+
 
 if __name__ == "__main__":
     #get_user_debts(30400274)

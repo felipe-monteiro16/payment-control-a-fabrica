@@ -1,6 +1,7 @@
 # Ignore configuration files
 .env
 access_token.json
+data_access/src/contacts.csv
 
 # Ignore Python bytecode files
 __pycache__/
