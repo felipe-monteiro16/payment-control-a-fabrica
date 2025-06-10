@@ -63,6 +63,22 @@ def get_and_send_all(user_id: int) -> None:
     external_services.send_user(user_id,payment_link, payment_items)
 
 
+@app.command()
+def create_user_debts(
+    p: str = typer.Option(
+        "data_access/src/debts.csv", "--path", "-p", help="Path to the CSV file with user debts."),
+    d: str = typer.Option(
+        ..., "--description", "-d", help="Description of the expense."
+    )
+) -> None:
+    """Create user debts with Splitwise API."""
+    # Initialize the Data Access Layer
+    data_access = DataAccess()
+
+    # Create user debts with Splitwise API
+    data_access.create_user_debts(p, d)
+    typer.echo("Debts created successfully.")
+
 if __name__ == "__main__":
     #get_user_debts(30400274)
     app()

@@ -55,7 +55,7 @@ def verify_access_token(clt):
     """Verify if the access token is valid."""
     try:
         current_user = clt.getCurrentUser()
-        print(f" User name: {current_user.first_name}")
+        print(f" User name: {current_user.first_name}, ID: {current_user.id}")
     except SplitwiseUnauthorizedException as e:
         print("Failed Verify: Access token is invalid.")
         print(f"Error: {e}\n")

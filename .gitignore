@@ -14,3 +14,6 @@ venv/
 tests_mercado_pago.py
 tests_whatsapp.py
 tests_splitwise.py
+
+# Ignore csv files
+*.csv
