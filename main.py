@@ -2,7 +2,7 @@
 import typer # type: ignore
 from data_access import DataAccess
 from external_services import ExternalServices
-from cli import show_all_users, show_user_debts, show_payment_link
+from cli import show_all_users, show_user_debts, show_payment_link, show_created_payment
 
 app = typer.Typer()
 
@@ -76,8 +76,11 @@ def create_user_debts(
     data_access = DataAccess()
 
     # Create user debts with Splitwise API
-    data_access.create_user_debts(p, d)
-    typer.echo("Debts created successfully.")
+    expenses = data_access.create_user_debts(p, d)
+
+    show_created_payment(expenses, d)
+
+
 
 if __name__ == "__main__":
     #get_user_debts(30400274)

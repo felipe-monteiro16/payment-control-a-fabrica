@@ -1,7 +1,61 @@
 """Data Access Layer for Splitwise API"""
 import csv
+from dataclasses import dataclass
 from splitwise.expense import Expense
 from splitwise.user import ExpenseUser
+
+
+@dataclass
+class Debt:
+    """Class to represent user balance."""
+    id: str
+    name: str
+    value: str
+
+
+@dataclass
+class DebtProcessor:
+    """Class to process user debts."""
+    def __init__(self, client, csv_path: str = "data_access/src/debts.csv"):
+
+        self.csv_path = csv_path
+        self.user_id = client.getCurrentUser().id
+
+
+    def load_csv(self) -> tuple[list, float]:
+        """Load CSV file and return a dictionary with user IDs and their debts."""
+        with open(self.csv_path, newline='', encoding='utf-8') as csvfile:
+            reader = csv.DictReader(csvfile)
+            expenses: list[Debt] = []
+            total_amount = 0.0
+            for row in reader:
+                if row["UserID"].strip() == self.user_id or row["UserID"].strip() == "":
+                    print("Skipping the current user from the CSV file.")
+                    continue
+                try:
+                    user_id = str(row["user_id"].strip())
+                    amount = float(row["value"].strip().replace("R$", "").replace(",", "."))
+                except ValueError:
+                    print(f"Failed to convert data: {row}")
+                    continue
+
+                total_amount += amount
+                expenses.append(
+                    Debt(id=user_id, name=row["name"].strip(), value=str(amount))
+                )
+            return expenses, total_amount
+
+
+    def to_dict(self, expenses: list[Debt]) -> list[dict]:
+        """Convert a list of Debt objects to a list of dictionaries."""
+        return [
+            {
+                "user_id": expense.id,
+                "name": expense.name,
+                "value": expense.value,
+            }
+            for expense in expenses
+        ]
 
 
 def get_all_users(client):
@@ -63,35 +117,34 @@ def create_user_debts(client, csv_path="data_access/src/debts.csv", description=
 
     participants = []
     total_amount = 0
+    user_id = client.getCurrentUser().id
 
-    with open(csv_path, newline='', encoding='utf-8') as csvfile:
-        reader = csv.DictReader(csvfile)
-        for row in reader:
-            try:
-                user_id = int(row["UserID"].strip())
-                amount = float(row["Valor"].strip().replace("R$", "").replace(",", "."))
-            except ValueError:
-                print(f"Failed to convert data: {row}")
-                continue
+    debt_processor = DebtProcessor(client, csv_path)
+    expenses, total_amount = debt_processor.load_csv()
+    if total_amount <= 0:
+        print("Total amount is zero or negative. Aborting.")
+        return
+    if not expenses:
+        print("No expenses found in the CSV file. Aborting.")
+        return
 
-            total_amount += amount
-
-            user = ExpenseUser()
-            user.setId(user_id)
-            user.setPaidShare("0.00")         # A pessoa não pagou nada
-            user.setOwedShare(str(amount))    # Mas está devendo esse valor
-            participants.append(user)
+    for expense in expenses:
+        user = ExpenseUser()
+        user.setId(expense.id)  # Use the user ID from the expense
+        user.setPaidShare("0.00")         # A pessoa não pagou nada
+        user.setOwedShare(expense.value)    # Mas está devendo esse valor
+        participants.append(user)
 
     if not participants:
         print("No valid participants found. Aborting.")
         return
 
     #  Adds the current user as the payer
-    pagador = ExpenseUser()
-    pagador.setId(client.getCurrentUser().id)
-    pagador.setPaidShare(str(total_amount))
-    pagador.setOwedShare("0.00")
-    participants.append(pagador)
+    payer = ExpenseUser()
+    payer.setId(user_id)
+    payer.setPaidShare(str(total_amount))
+    payer.setOwedShare("0.00")
+    participants.append(payer)
 
     expense = Expense()
     expense.setCost(str(total_amount))
@@ -102,9 +155,9 @@ def create_user_debts(client, csv_path="data_access/src/debts.csv", description=
 
     if created_expense and created_expense.getId():
         print(f"Expense created successfully! ID: {created_expense.getId()}")
+        return debt_processor.to_dict(expenses), description
+    print("Failed to create expense.")
+    if errors:
+        print("Errors:", errors)
     else:
-        print("Failed to create expense.")
-        if errors:
-            print("Errors:", errors)
-        else:
-            print("No specific error was returned.")
+        print("No specific error was returned.")

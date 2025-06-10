@@ -6,7 +6,7 @@ class Cli:
         self.data_access = data_access
         self.external_services = external_services
         self.description_width = 20
-        self.value_width = 8
+        self.value_width = 7
 
     @property
     def table_line(self) -> str:
@@ -15,7 +15,7 @@ class Cli:
 
     def items_sum(self, items: list[dict[str, float]]) -> float:
         """Calculate the sum of the values in the items."""
-        return sum(abs(item["value"]) for item in items)
+        return sum(abs(float(item["value"])) for item in items)
 
 
 def show_all_users(users: list[dict[str, str]]) -> None:
@@ -29,7 +29,6 @@ def show_user_debts(debts: list[dict[str, float]]) -> None:
     cli = Cli(data_access=None, external_services=None)
     value_w = cli.value_width
     description_w = cli.description_width
-
     value_items_sum = cli.items_sum(debts)
 
     # Print the payment items
@@ -56,7 +55,6 @@ def show_payment_link(payment_link: str, payment_items: list[dict[str, float]]) 
     value_w = cli.value_width
     description_w = cli.description_width
 
-
     # Print the payment link
     print(cli.table_line)
     print(f"\nPayment Link: {payment_link}\n")
@@ -72,5 +70,24 @@ def show_payment_link(payment_link: str, payment_items: list[dict[str, float]]) 
         print(f"| {item['description']: <{description_w}}R$ {item['value']: >{value_w}} |")
     print(cli.table_line)
     print(f"| {'Total': <{description_w}}R$ {value_items_sum: >{value_w}} |")
+    print(cli.table_line)
+    print("\n")
+
+
+def show_created_payment(items: dict[str, str, str], title:str) -> None:
+    """Show created payment details"""
+    # logic to display the created payment details
+    cli = Cli(data_access=None, external_services=None)
+    print("Payment created successfully!")
+    content_width = max(len(item['name']) for item in items)
+
+    total_value = cli.items_sum(items)
+    print(cli.table_line)
+    print(f"| {title: ^{content_width+cli.value_width + 4}} |")
+    print(cli.table_line)
+    for item in items:
+        print(f"| {item['name']: <{content_width}} R$ {item['value']: >{cli.value_width}} |")
+    print(cli.table_line)
+    print(f"| {'Total': <{content_width}} R$ {total_value: >{cli.value_width}} |")
     print(cli.table_line)
     print("\n")
