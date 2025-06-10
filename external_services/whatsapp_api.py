@@ -1,9 +1,10 @@
-import requests
-from dotenv import load_dotenv
+"""Module to send messages via WhatsApp API."""
 import os
-from data_access import DataAccess
-from dataclasses import dataclass
 from datetime import datetime
+from dataclasses import dataclass
+from dotenv import load_dotenv
+import requests
+from data_access import DataAccess
 
 
 @dataclass
@@ -60,16 +61,18 @@ class MessageData:
         """Calculate the total value of the payment items."""
         self.payment_items.append(Debt("Total", sum(item.value for item in self.payment_items)))
 
-    
+
     def align_payment_values(self) -> None:
         """Align the payment values"""
         for item in self.payment_items:
             item.value = f"{item.value:.2f}".replace(".", ",")
-        
+
+
         def get_spaces(value: str) -> str:
             """Get the number of spaces needed to align the values."""
             return " " * (7 - len(value))
-        
+
+
         for item in self.payment_items:
             item.value = f"{get_spaces(item.value)}{item.value}"
 
@@ -116,7 +119,7 @@ def send_user(user_id: int, payment_link: str, payment_items: list[dict[str, flo
                         {"type": "text", "text": current_month},
                         {"type": "text", "text": items["mensalidade"]},
                         {"type": "text", "text": items["almoço"]},
-                        {"type": "text", "text": items["bebidas"]},
+                        {"type": "text", "text": items["geladeira"]},
                         {"type": "text", "text": items["taxas"]},
                         {"type": "text", "text": items["total"]}
                     ]
