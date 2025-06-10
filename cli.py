@@ -1,5 +1,22 @@
 """Interface for Splitwise API using Typer"""
 
+class Cli:
+    """Command Line Interface for Splitwise API operations."""
+    def __init__(self, data_access, external_services):
+        self.data_access = data_access
+        self.external_services = external_services
+        self.description_width = 20
+        self.value_width = 8
+
+    @property
+    def table_line(self) -> str:
+        """Generate a table line with the given character"""
+        return "+----" + "-" * (self.description_width + self.value_width) + "-+"
+
+    def items_sum(self, items: list[dict[str, float]]) -> float:
+        """Calculate the sum of the values in the items."""
+        return sum(abs(item["value"]) for item in items)
+
 
 def show_all_users(users: list[dict[str, str]]) -> None:
     """Show all users from Splitwise API"""
@@ -9,60 +26,51 @@ def show_all_users(users: list[dict[str, str]]) -> None:
 
 def show_user_debts(debts: list[dict[str, float]]) -> None:
     """Show all user debts from the last month"""
-    if(not debts):
-        print("No debts found for the user.\n")
-        return
+    cli = Cli(data_access=None, external_services=None)
+    value_w = cli.value_width
+    description_w = cli.description_width
 
-    description_width = 20
-    value_width = 8
-    value_items_sum = sum(abs(item["value"]) for item in debts)
-
-
-    def generate_table_line(char: str) -> str:
-        """Generate a table line with the given character"""
-        return "+----" + char * (description_width + value_width) + "-+"
-
+    value_items_sum = cli.items_sum(debts)
 
     # Print the payment items
     print("Items:\n")
-    print(generate_table_line("-"))
-    print(f"| {'Description': ^{description_width}}|  {'Value': ^{value_width}} |")
-    print(generate_table_line("-"))
+    print(cli.table_line)
+    print(f"| {'Description': ^{description_w}}|  {'Value': ^{value_w}} |")
+    print(cli.table_line)
     for item in debts:
         # Format the item description and value
-        print(f"| {item['description']: <{description_width}}R$ {abs(item['value']): >{value_width}} |")
-    print(generate_table_line("-"))
-    print(f"| {'Total': <{description_width}}R$ {value_items_sum: >{value_width}} |")
-    print(generate_table_line("-"))
+        print(
+            f"| {item['description']: <{description_w}}"
+            f"R$ {abs(item['value']): >{value_w}} |"
+        )
+    print(cli.table_line)
+    print(f"| {'Total': <{description_w}}R$ {value_items_sum: >{value_w}} |")
+    print(cli.table_line)
     print("\n")
 
 
 def show_payment_link(payment_link: str, payment_items: list[dict[str, float]]) -> None:
     """Show payment link and items"""
-    description_width = 20
-    value_width = 8
-    value_items_sum = sum(abs(item["value"]) for item in payment_items)
-
-
-    def generate_table_line(char: str) -> str:
-        """Generate a table line with the given character"""
-        return "+----" + char * (description_width + value_width) + "-+"
+    cli = Cli(data_access=None, external_services=None)
+    value_items_sum = cli.items_sum(payment_items)
+    value_w = cli.value_width
+    description_w = cli.description_width
 
 
     # Print the payment link
-    print(generate_table_line("-"))
+    print(cli.table_line)
     print(f"\nPayment Link: {payment_link}\n")
-    print(generate_table_line("-"))
+    print(cli.table_line)
 
     # Print the payment items
     print("Items:\n")
-    print(generate_table_line("-"))
-    print(f"| {'Description': ^{description_width}}|  {'Value': ^{value_width}} |")
-    print(generate_table_line("-"))
+    print(cli.table_line)
+    print(f"| {'Description': ^{description_w}}|  {'Value': ^{value_w}} |")
+    print(cli.table_line)
     for item in payment_items:
         # Format the item description and value
-        print(f"| {item['description']: <{description_width}}R$ {item['value']: >{value_width}} |")
-    print(generate_table_line("-"))
-    print(f"| {'Total': <{description_width}}R$ {value_items_sum: >{value_width}} |")
-    print(generate_table_line("-"))
+        print(f"| {item['description']: <{description_w}}R$ {item['value']: >{value_w}} |")
+    print(cli.table_line)
+    print(f"| {'Total': <{description_w}}R$ {value_items_sum: >{value_w}} |")
+    print(cli.table_line)
     print("\n")
