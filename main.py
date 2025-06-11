@@ -20,6 +20,7 @@ def get_users() -> None:
     show_all_users(users)
 
 
+
 @app.command()
 def get_user_debts(user_id: int) -> None:
     """Get user debts from the last month by ID."""
@@ -42,7 +43,7 @@ def get_payment_link(user_id: int,) -> None:
 
     # Create payment link
     user_debts = data_access.get_user_debts(user_id)
-    payment_link, payment_items = external_services.get_payment_link(user_debts)
+    payment_link, payment_items = external_services.get_payment_link(user_debts, user_id)
 
     # Show payment link in the CLI
     show_payment_link(payment_link, payment_items)
@@ -57,7 +58,7 @@ def get_and_send_all(user_id: int) -> None:
 
     # Create payment link
     user_debts = data_access.get_user_debts(user_id)
-    payment_link, payment_items = external_services.get_payment_link(user_debts)
+    payment_link, payment_items = external_services.get_payment_link(user_debts, user_id)
 
     # Send to the user
     external_services.send_user(user_id,payment_link, payment_items)

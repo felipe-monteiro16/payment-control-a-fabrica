@@ -1,8 +1,9 @@
 """Mercado Pago API integration for payment links."""
 import os
 import sys
+import json
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from dotenv import load_dotenv
 import mercadopago
 
@@ -39,6 +40,11 @@ class PaymentData:
         else:
             self.user_debts = []
 
+        self.expiration_from = datetime.now(timezone.utc) # Today
+        self.expiration_to = self.expiration_from + timedelta(days=20) # Today + Limit
+        self.total_value = 0.0  # Initialize total_value in __init__
+        self.json_filename = "payment_data.json"
+
 
     def has_debts(self):
         """Check if the user has debts."""
@@ -62,7 +68,15 @@ class PaymentData:
         # Calculate taxes
         debts_sum = sum(abs(debt.value) for debt in self.user_debts)
         taxes = round(debts_sum * self.tax_percent, 2)
+        self.total_value = debts_sum + taxes
         self.user_debts.append(Debt("Taxas", taxes))
+
+
+    @property
+    def current_month(self) -> str:
+        """Get the current month in the format 'MM/YY'."""
+        return datetime.now().strftime("%m/%y").replace("/", "_")
+
 
 
     def to_json(self):
@@ -89,7 +103,33 @@ class PaymentData:
         ]
 
 
-def get_payment_link(user_debts) -> tuple[str, list[Debt]]:
+    def to_payment_json(self, user_id, preference_data, payment_link):
+        """Save the user debts to a json file"""
+        payment_json = []
+
+        if os.path.exists(self.json_filename):
+            with open(self.json_filename, "r", encoding="utf-8") as json_file:
+                try:
+                    payment_json = json.load(json_file)
+                except json.JSONDecodeError:
+                    payment_json = []
+
+        new_payment_entry = {
+            "user_id": user_id,
+            "external_reference": preference_data["external_reference"],
+            "link": payment_link,
+            "valor_total": self.total_value,
+            "vencimento": preference_data["expiration_date_to"]
+        }
+
+        payment_json.append(new_payment_entry)
+
+        # Salvar JSON em um arquivo
+        with open("payment_data.json", "w", encoding="utf-8") as json_file:
+            json.dump(payment_json, json_file, ensure_ascii=False, indent=4)
+
+
+def get_payment_link(user_debts, user_id) -> tuple[str, list[Debt]]:
     """Get the payment link for the given user_id."""
     if user_debts is None:
         print("User debts cannot be None.")
@@ -107,6 +147,7 @@ def get_payment_link(user_debts) -> tuple[str, list[Debt]]:
     payment_data.get_taxes()
     preference_items = payment_data.to_json()
 
+
     # Create preference data
     preference_data = {
         "items": preference_items,
@@ -120,6 +161,9 @@ def get_payment_link(user_debts) -> tuple[str, list[Debt]]:
             "default_payment_method_id": "pix"
         },
         "description": "TESTE DE DESCRIÇÃO",
+        "external_reference": f"{user_id}_{payment_data.current_month}",
+        "expiration_date_from": payment_data.expiration_from.isoformat(),
+        "expiration_date_to": payment_data.expiration_to.isoformat(),
     }
 
     # Create payment link
@@ -128,6 +172,9 @@ def get_payment_link(user_debts) -> tuple[str, list[Debt]]:
     if preference_response["status"] == 201:
         preference = preference_response["response"]
         payment_link = preference["init_point"]
+
+        # Criar JSON consolidado com total
+        payment_data.to_payment_json(user_id, preference_data, payment_link)
         return payment_link, payment_items
 
     # If the response is not 201, print the error and exit
@@ -137,3 +184,7 @@ def get_payment_link(user_debts) -> tuple[str, list[Debt]]:
         f"Error: {preference_response['response'].get('message', 'No message available')}"
     )
     sys.exit("Failed to create payment link.")
+
+
+def get_paid_debts():
+    """Get the paid debts with webhook"""

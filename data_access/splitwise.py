@@ -112,7 +112,7 @@ def get_user_debts(client, friend_id) -> list[dict[str, float]]:
     return None
 
 
-def create_user_debts(client, csv_path="data_access/src/debts.csv", description="New Expense"):
+def create_user_debts(client, csv_path, description):
     """Create a new expense based on a CSV file with user debts."""
 
     participants = []
