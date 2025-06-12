@@ -29,26 +29,13 @@ class PaymentData:
     tax_percent: float = 0.0099
     user_debts: list[Debt] = None
     # email: str = None
+    expiration_from: datetime = None
+    expiration_to: datetime = None
 
 
-    def __init__(self, user_debts=None):
-        if user_debts:
-            self.user_debts = [
-                Debt(debt["description"], float(debt["value"]))
-                for debt in user_debts
-            ]
-        else:
-            self.user_debts = []
-
-        self.expiration_from = datetime.now(timezone.utc) # Today
-        self.expiration_to = self.expiration_from + timedelta(days=20) # Today + Limit
+    def __init__(self):
         self.total_value = 0.0  # Initialize total_value in __init__
         self.json_filename = "payment_data.json"
-
-
-    def has_debts(self):
-        """Check if the user has debts."""
-        return bool(self.user_debts)
 
 
     @property
@@ -63,6 +50,22 @@ class PaymentData:
         return sdk
 
 
+    def get_debts(self, user_debts=None):
+        """Get the debts with Debt type"""
+        if user_debts:
+            self.user_debts = [
+                Debt(debt["description"], float(debt["value"]))
+                for debt in user_debts
+            ]
+        else:
+            self.user_debts = []
+
+
+    def has_debts(self):
+        """Check if the user has debts."""
+        return bool(self.user_debts)
+
+
     def get_taxes(self):
         """Calculate taxes for the given user debts."""
         # Calculate taxes
@@ -72,15 +75,20 @@ class PaymentData:
         self.user_debts.append(Debt("Taxas", taxes))
 
 
+    def set_expiration(self):
+        """Set the expiration to the payment_link"""
+        self.expiration_from = datetime.now(timezone.utc) # Today
+        self.expiration_to = self.expiration_from + timedelta(days=20) # Today + Limit
+
+
     @property
     def current_month(self) -> str:
         """Get the current month in the format 'MM/YY'."""
         return datetime.now().strftime("%m/%y").replace("/", "_")
 
 
-
     def to_json(self):
-        """Convert user debts to JSON format."""
+        """Convert user debts to JSON format for preference data."""
         return[
             {
                 "title": debt.description,
@@ -135,7 +143,8 @@ def get_payment_link(user_debts, user_id) -> tuple[str, list[Debt]]:
         print("User debts cannot be None.")
         return None
 
-    payment_data = PaymentData(user_debts)
+    payment_data = PaymentData()
+    payment_data.get_debts(user_debts)
 
     # Check if the user has debt
     if not payment_data.has_debts():
@@ -145,8 +154,8 @@ def get_payment_link(user_debts, user_id) -> tuple[str, list[Debt]]:
     # Get the Mercado Pago SDK settings
     sdk = payment_data.settings
     payment_data.get_taxes()
+    payment_data.set_expiration()
     preference_items = payment_data.to_json()
-
 
     # Create preference data
     preference_data = {
@@ -187,4 +196,4 @@ def get_payment_link(user_debts, user_id) -> tuple[str, list[Debt]]:
 
 
 def get_paid_debts():
-    """Get the paid debts with webhook"""
+    """Get the paid debts"""
