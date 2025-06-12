@@ -64,7 +64,7 @@ def get_and_send_all(user_id: int) -> None:
     external_services.send_user(user_id,payment_link, payment_items)
 
 
-@app.command()
+app.command()
 def create_user_debts(
     p: str = typer.Option(
         "data_access/src/debts.csv", "--path", "-p", help="Path to the CSV file with user debts."),
@@ -81,6 +81,12 @@ def create_user_debts(
 
     show_created_payment(expenses, d)
 
+
+@app.command()
+def get_paid_debts():
+    """Verify the paid debts and send to Splitwise"""
+    external_services = ExternalServices()
+    print(external_services.get_paid_debts())
 
 
 if __name__ == "__main__":

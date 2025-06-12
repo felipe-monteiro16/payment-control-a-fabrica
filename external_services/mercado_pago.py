@@ -20,7 +20,7 @@ class Debt:
         """Get the description of the balance."""
         # Format the description with the value and date
         month_year = datetime.now().strftime("%m/%y")
-        return self.description + month_year
+        return f"{self.description} - {month_year}"
 
 
 @dataclass
@@ -44,8 +44,8 @@ class PaymentData:
         load_dotenv()
         access_token = os.getenv("ACCESS_TOKEN")
         if not access_token:
-            print("Mercado Pago ACCESS_TOKEN is missing. Please check your environment variables.")
-            sys.exit("Please set the Mercado Pago ACCESS_TOKEN environment variable.")
+            print("Mercado Pago ACCESS_TOKEN is missing. Please check your environment variables. "
+                  "You can set it by adding 'ACCESS_TOKEN=<your_token>' to your .env file.")
         sdk = mercadopago.SDK(access_token)
         return sdk
 
@@ -84,7 +84,24 @@ class PaymentData:
     @property
     def current_month(self) -> str:
         """Get the current month in the format 'MM/YY'."""
-        return datetime.now().strftime("%m/%y").replace("/", "_")
+        return datetime.now().strftime("%m_%y")
+
+
+    def external_reference(self, user_id):
+        """Set external reference to the payment"""
+        version = 1
+        external_reference = f"{user_id}_{self.current_month}_V{version}"
+
+        # Get correct version
+        with open("payment_data.json", "r", encoding="utf-8") as json_file:
+            try:
+                payment_data = json.load(json_file)
+                version = sum(1 for entry in payment_data 
+                              if entry.get("external_reference") == external_reference)
+            except json.JSONDecodeError:
+                print("Error decoding payment data.")
+                return []
+        return external_reference
 
 
     def to_json(self):
@@ -132,7 +149,7 @@ class PaymentData:
 
         payment_json.append(new_payment_entry)
 
-        # Salvar JSON em um arquivo
+        # Save JSON to a file
         with open("payment_data.json", "w", encoding="utf-8") as json_file:
             json.dump(payment_json, json_file, ensure_ascii=False, indent=4)
 
@@ -156,6 +173,7 @@ def get_payment_link(user_debts, user_id) -> tuple[str, list[Debt]]:
     payment_data.get_taxes()
     payment_data.set_expiration()
     preference_items = payment_data.to_json()
+    external_reference = payment_data.external_reference(user_id)
 
     # Create preference data
     preference_data = {
@@ -170,21 +188,30 @@ def get_payment_link(user_debts, user_id) -> tuple[str, list[Debt]]:
             "default_payment_method_id": "pix"
         },
         "description": "TESTE DE DESCRIÇÃO",
-        "external_reference": f"{user_id}_{payment_data.current_month}",
+        "external_reference": f"{external_reference}",
         "expiration_date_from": payment_data.expiration_from.isoformat(),
         "expiration_date_to": payment_data.expiration_to.isoformat(),
     }
 
     # Create payment link
     payment_items = payment_data.to_dict()
-    preference_response = sdk.preference().create(preference_data)
-    if preference_response["status"] == 201:
-        preference = preference_response["response"]
-        payment_link = preference["init_point"]
+    try:
+        preference_response = sdk.preference().create(preference_data)
+        if preference_response["status"] == 201:
+            preference = preference_response["response"]
+            payment_link = preference["init_point"]
 
-        # Criar JSON consolidado com total
-        payment_data.to_payment_json(user_id, preference_data, payment_link)
-        return payment_link, payment_items
+            # Criar JSON consolidado com total
+            payment_data.to_payment_json(user_id, preference_data, payment_link)
+            return payment_link, payment_items
+        else:
+            print(
+                f"Error creating payment link: {preference_response['response']}."
+                f"Status: {preference_response.get('status')}, "
+                f"Error: {preference_response['response'].get('message', 'No message available')}"
+            )
+    except Exception as e:
+        print(f"An exception occurred while creating the payment link: {e}")
 
     # If the response is not 201, print the error and exit
     print(
@@ -195,5 +222,45 @@ def get_payment_link(user_debts, user_id) -> tuple[str, list[Debt]]:
     sys.exit("Failed to create payment link.")
 
 
+
 def get_paid_debts():
-    """Get the paid debts"""
+    """Verify the debts, remove from json and return the paid."""
+    if not os.path.exists("payment_data.json"):
+        print("No payment data found.")
+        return []
+
+    with open("payment_data.json", "r", encoding="utf-8") as json_file:
+        try:
+            payment_entries = json.load(json_file)
+            all_debts = [entry for entry in payment_entries if entry.get("valor_total", 0) > 0]
+        except json.JSONDecodeError:
+            print("Error decoding payment data.")
+            return []
+
+    # Inicializa MercadoPago SDK corretamente
+    payment_data = PaymentData()
+    sdk = payment_data.settings
+    
+    # Busca pagamentos aprovados
+    search_result = sdk.payment().search({})
+    
+    # Lista de referências pagas
+    paid_references = [
+        {"reference": payment["external_reference"], "user_id": debt["user_id"]}
+        for debt in all_debts
+        for payment in search_result["response"]["results"]
+        if payment["status"] == "approved" and payment["external_reference"] == debt["external_reference"]
+    ]
+    
+    # Coletar IDs de usuários cujas dívidas foram pagas
+    user_ids = [entry['user_id'] for key, entry in enumerate(paid_references)]
+
+    # Remover do all_debts os débitos que têm uma referência paga
+    all_debts = [debt for debt in all_debts if debt["external_reference"] not in [entry["reference"] for entry in paid_references]]
+
+    # Sobrescrever o payment_data com os novos débitos não pagos
+    with open("payment_data.json", "w", encoding="utf-8") as json_file:
+        json.dump(all_debts, json_file, indent=4, ensure_ascii=False)
+
+    return user_ids
+
