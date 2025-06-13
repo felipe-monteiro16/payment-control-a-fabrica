@@ -96,8 +96,10 @@ class PaymentData:
         with open("payment_data.json", "r", encoding="utf-8") as json_file:
             try:
                 payment_data = json.load(json_file)
-                version = sum(1 for entry in payment_data 
-                              if entry.get("external_reference") == external_reference)
+                for entry in payment_data:
+                    if entry.get("external_reference") == external_reference:
+                        version+=1
+                        external_reference = f"{user_id}_{self.current_month}_V{version}"
             except json.JSONDecodeError:
                 print("Error decoding payment data.")
                 return []
@@ -204,21 +206,14 @@ def get_payment_link(user_debts, user_id) -> tuple[str, list[Debt]]:
             # Criar JSON consolidado com total
             payment_data.to_payment_json(user_id, preference_data, payment_link)
             return payment_link, payment_items
-        else:
-            print(
-                f"Error creating payment link: {preference_response['response']}."
-                f"Status: {preference_response.get('status')}, "
-                f"Error: {preference_response['response'].get('message', 'No message available')}"
-            )
+        # If the response is not 201, print the error and exit
+        print(
+            f"Error creating payment link: {preference_response['response']}."
+            f"Status: {preference_response.get('status')}, "
+            f"Error: {preference_response['response'].get('message', 'No message available')}"
+        )
     except Exception as e:
         print(f"An exception occurred while creating the payment link: {e}")
-
-    # If the response is not 201, print the error and exit
-    print(
-        f"Error creating payment link: {preference_response['response']}."
-        f"Status: {preference_response.get('status')}, "
-        f"Error: {preference_response['response'].get('message', 'No message available')}"
-    )
     sys.exit("Failed to create payment link.")
 
 
@@ -240,27 +235,30 @@ def get_paid_debts():
     # Inicializa MercadoPago SDK corretamente
     payment_data = PaymentData()
     sdk = payment_data.settings
-    
+
     # Busca pagamentos aprovados
     search_result = sdk.payment().search({})
-    
+
     # Lista de referências pagas
     paid_references = [
         {"reference": payment["external_reference"], "user_id": debt["user_id"]}
         for debt in all_debts
         for payment in search_result["response"]["results"]
-        if payment["status"] == "approved" and payment["external_reference"] == debt["external_reference"]
+        if payment["status"] == "approved" and
+           payment["external_reference"] == debt["external_reference"]
     ]
-    
+
     # Coletar IDs de usuários cujas dívidas foram pagas
     user_ids = [entry['user_id'] for key, entry in enumerate(paid_references)]
 
     # Remover do all_debts os débitos que têm uma referência paga
-    all_debts = [debt for debt in all_debts if debt["external_reference"] not in [entry["reference"] for entry in paid_references]]
+    all_debts = [
+        debt for debt in all_debts
+        if debt["external_reference"] not in [entry["reference"] for entry in paid_references]
+    ]
 
     # Sobrescrever o payment_data com os novos débitos não pagos
     with open("payment_data.json", "w", encoding="utf-8") as json_file:
         json.dump(all_debts, json_file, indent=4, ensure_ascii=False)
 
     return user_ids
-
