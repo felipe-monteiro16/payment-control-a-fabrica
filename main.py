@@ -50,7 +50,7 @@ def get_payment_link(user_id: int,) -> None:
 
 
 @app.command()
-def get_and_send_all(user_id: int) -> None:
+def send_payment_link(user_id: int) -> None:
     """Get user debts and payment link, then send them to the user."""
     # Initialize the Data Access Layer
     data_access = DataAccess()

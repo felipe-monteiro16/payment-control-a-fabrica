@@ -45,12 +45,12 @@ To get the access of the `Splitwise API`, it will be need to do some steps on fi
 
 In the project root, open the terminal and run:
 ```
-poetry run main.py get-users
+poetry run python main.py get-users
 ```
 
 Temporary: If it gets an error, try:
 ```
-poetry run main.py get-users --no-root
+poetry run python main.py get-users --no-root
 ```
 
 After running, on browser, open the link that appeared on terminal and authorize the access.
@@ -73,11 +73,11 @@ Done! If everything went well, will have appeared the `users list` on terminal.
 
 ## Commands
 
-To run the project, use `poetry run` followed by `main.py` and the desired command.
+To run the project, use `poetry run` followed by `python main.py` and the desired command.
 
 For more information, use:
 ```
-poetry run main.py --help
+poetry run python main.py --help
 ```
 
 ### Command List
@@ -86,7 +86,7 @@ poetry run main.py --help
 
     Usage example:
     ```
-    poetry run main.py get-users
+    poetry run python main.py get-users
     ```
     The users name and ID will be displayed.
 
@@ -94,7 +94,7 @@ poetry run main.py --help
 
     Usage example:
     ```
-    poetry run main.py get-user-debts USER-ID
+    poetry run python main.py get-user-debts USER-ID
     ```
     If the user has debts, the name and amount of the debt will be displayed.
 
@@ -102,6 +102,30 @@ poetry run main.py --help
 
     Usage example:
     ```
-    poetry run main.py get-payment-link USER-ID
+    poetry run python main.py get-payment-link USER-ID
     ```
     The payment link and the items table will be displayed.
+
+* `send-payment-link`: Get user debts, create a Mercado Pago payment link, and send it to the user via WhatsApp.
+
+    Usage example:
+    ```
+    poetry run python main.py send-payment-link USER-ID
+    ```
+    The payment link will be sent to the user.
+
+* `create-user-debts`: Create user debts in Splitwise from a CSV file.
+
+    Usage example:
+    ```
+    poetry run python main.py create-user-debts --path data_access/src/debts.csv --description "Expense description"
+    ```
+    The debts will be created in Splitwise and shown in the CLI.
+
+* `get-paid-debts`: Verify paid users (via Mercado Pago) and send payments to Splitwise.
+
+    Usage example:
+    ```
+    poetry run python main.py get-paid-debts
+    ```
+    Paid users will be processed and their payments sent to Splitwise.
