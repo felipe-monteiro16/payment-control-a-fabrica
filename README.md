@@ -18,14 +18,22 @@ poetry install
 ```
 ### File `.env`
 
-In the project root, create an `.env` file to store the Splitwise and Mercado Pago API keys, you can get these keys from the project administrators.
+In the project root, create an `.env` file to store the Splitwise keys, Mercado Pago API token, Whatsapp API keys, you can get these keys from the project administrators.
 
 The `.env` file have to contain these following Splitwise environment variables.
 
 ```
+# SPLITWISE KEYS
 CONSUMER_KEY=consumer_key_here
 CONSUMER_SECRET=consumer_secret_here
 API_KEY=api_key_here
+
+# MERCADO PAGO TOKEN
+ACCESS_TOKEN=mercado_pago_access_token_here
+
+# WHATSAPP KEYS
+WHATSAPP_PHONE_NUMBER_ID=your_whatsapp_phone_number_id_here
+WHATSAPP_ACCESS_TOKEN=your_whatsapp_access_token_here
 ```
 
 And the Mercado Pago Access Token:
