@@ -112,7 +112,7 @@ def get_user_debts(client, friend_id) -> list[dict[str, float]]:
     return None
 
 
-def create_user_debts(client, csv_path, description):
+def create_user_debts(client, csv_path, description) -> tuple[list[dict], str]:
     """Create a new expense based on a CSV file with user debts."""
 
     participants = []
@@ -129,17 +129,18 @@ def create_user_debts(client, csv_path, description):
         return
 
     for expense in expenses:
+        # Creates an ExpenseUser object for each participant
         user = ExpenseUser()
-        user.setId(expense.id)  # Use the user ID from the expense
-        user.setPaidShare("0.00")         # A pessoa não pagou nada
-        user.setOwedShare(expense.value)    # Mas está devendo esse valor
+        user.setId(expense.id)
+        user.setPaidShare("0.00")
+        user.setOwedShare(expense.value)
         participants.append(user)
 
     if not participants:
         print("No valid participants found. Aborting.")
         return
 
-    #  Adds the current user as the payer
+    # Adds the current user as the payer
     payer = ExpenseUser()
     payer.setId(user_id)
     payer.setPaidShare(str(total_amount))
@@ -161,3 +162,73 @@ def create_user_debts(client, csv_path, description):
         print("Errors:", errors)
     else:
         print("No specific error was returned.")
+    return [], description
+
+
+def send_payments(client, paid_users: list[int]):
+    """Send payments of the paid users to the Splitwise API."""
+    if not paid_users:
+        print("No paid users provided. Aborting.")
+        return
+    if not isinstance(paid_users, list):
+        print("paid_users should be a list of user IDs. Aborting.")
+        return
+
+    friends = client.getFriends()
+
+    for user_id in paid_users:
+        # Find the user in the friends list
+        user = None
+        for friend in friends:
+            if str(friend.id) == str(user_id):
+                user = friend
+                break
+        if not user:
+            print(f"User with ID {user_id} not found.")
+            continue
+
+        # Get the user's balance
+        user_balance = None
+        for balance in user.getBalances():
+            if balance.getCurrencyCode() == "BRL":
+                try:
+                    user_balance = balance.getAmount()
+                except UnboundLocalError as e:
+                    print(f"Error getting balance for user {user.first_name}. ID {user_id}: {e}")
+                break
+
+        if user_balance is None:
+            print(f"No valid balance found for user {user.first_name}. ID {user_id}.")
+            continue
+
+        # Creating payment
+        payment = Expense()
+        payment.setCost(str(user_balance))
+        payment.setDescription("Pagamento do Mês")
+        payment.setPayment(True)
+
+        # Friend
+        payer = ExpenseUser()
+        payer.setId(user_id)
+        payer.setPaidShare(str(user_balance))
+        payer.setOwedShare("0.00")
+
+        # Current user
+        recipient = ExpenseUser()
+        recipient.setId(client.getCurrentUser().id)
+        recipient.setPaidShare("0.00")
+        recipient.setOwedShare(str(user_balance))
+
+        # Create the payment with both users
+        payment.setUsers([payer, recipient])
+        payment.setCurrencyCode("BRL")
+        created_payment, errors = client.createExpense(payment)
+
+        if created_payment and created_payment.getId():
+            print(f"Payment sent for user {user.first_name}. ID {user_id}. Balance: {user_balance}")
+        else:
+            print(f"Failed to send payment for user {user.first_name}. ID {user_id}.")
+            if errors:
+                print("Errors:", errors)
+            else:
+                print("No specific error was returned.")

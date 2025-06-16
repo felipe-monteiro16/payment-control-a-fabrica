@@ -61,10 +61,10 @@ def get_and_send_all(user_id: int) -> None:
     payment_link, payment_items = external_services.get_payment_link(user_debts, user_id)
 
     # Send to the user
-    external_services.send_user(user_id,payment_link, payment_items)
+    external_services.send_debt_to_user(user_id,payment_link, payment_items)
 
 
-app.command()
+@app.command()
 def create_user_debts(
     p: str = typer.Option(
         "data_access/src/debts.csv", "--path", "-p", help="Path to the CSV file with user debts."),
@@ -84,9 +84,16 @@ def create_user_debts(
 
 @app.command()
 def get_paid_debts():
-    """Verify the paid debts and send to Splitwise"""
+    """Verify the paid users and send to Splitwise"""
+    # Initialize the External Services and Data Access Layer
     external_services = ExternalServices()
-    print(external_services.get_paid_debts())
+    data_access = DataAccess()
+
+    # Get paid users from external services
+    paid_users = external_services.get_paid_debts()
+
+    # Send payments to Splitwise API
+    data_access.send_payments(paid_users)
 
 
 if __name__ == "__main__":

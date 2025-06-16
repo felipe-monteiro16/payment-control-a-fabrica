@@ -22,7 +22,7 @@ class Debt:
         return f"{self.description.capitalize()} {month_year}"
 
 
-
+@dataclass
 class MessageData:
     """Proccess the data for sending messages via WhatsApp API."""
     payment_items: list[Debt] = None
@@ -89,7 +89,11 @@ class MessageData:
         return parameters
 
 
-def send_user(user_id: int, payment_link: str, payment_items: list[dict[str, float]]) -> None:
+def send_debt_to_user(
+    user_id: int,
+    payment_link: str,
+    payment_items: list[dict[str, float]]
+) -> None:
     """Send the payment link and items to the user via WhatsApp API."""
 
     message_data = MessageData(payment_items)
@@ -97,7 +101,7 @@ def send_user(user_id: int, payment_link: str, payment_items: list[dict[str, flo
     user_contact = message_data.get_user_contact(user_id)
     current_month = message_data.current_month
     items = message_data.to_whatsapp_payload
-    payment_link = payment_link.split("pref_id=")[1]
+    content_link = payment_link.split("pref_id=")[1]
 
     url = f"https://graph.facebook.com/v19.0/{phone_number_id}/messages"
     headers = {
@@ -129,7 +133,7 @@ def send_user(user_id: int, payment_link: str, payment_items: list[dict[str, flo
                     "sub_type": "url",
                     "index": 0,
                     "parameters": [
-                        {"type": "text", "text": payment_link}
+                        {"type": "text", "text": content_link}
                     ]
                 }
             ]

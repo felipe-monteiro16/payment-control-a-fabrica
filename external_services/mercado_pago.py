@@ -212,10 +212,9 @@ def get_payment_link(user_debts, user_id) -> tuple[str, list[Debt]]:
             f"Status: {preference_response.get('status')}, "
             f"Error: {preference_response['response'].get('message', 'No message available')}"
         )
-    except Exception as e:
-        print(f"An exception occurred while creating the payment link: {e}")
-    sys.exit("Failed to create payment link.")
-
+    except KeyError as e:
+        print(f"An error occurred while creating the payment link: {e}")
+        sys.exit("Failed to create payment link.")
 
 
 def get_paid_debts():
