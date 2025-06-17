@@ -5,7 +5,7 @@ class Cli:
     def __init__(self, data_access, external_services):
         self.data_access = data_access
         self.external_services = external_services
-        self.description_width = 20
+        self.description_width = 18
         self.value_width = 7
 
     @property
@@ -34,7 +34,7 @@ def show_user_debts(debts: list[dict[str, float]]) -> None:
     # Print the payment items
     print("Items:\n")
     print(cli.table_line)
-    print(f"| {'Description': ^{description_w}}|  {'Value': ^{value_w}} |")
+    print(f"| {'Descrição': ^{description_w}}|  {'Valor': ^{value_w}} |")
     print(cli.table_line)
     for item in debts:
         # Format the item description and value

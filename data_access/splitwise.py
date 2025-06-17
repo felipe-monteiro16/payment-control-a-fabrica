@@ -170,8 +170,8 @@ def send_payments(client, paid_users: list[int]):
     if not paid_users:
         print("No paid users provided. Aborting.")
         return
-    if not isinstance(paid_users, list):
-        print("paid_users should be a list of user IDs. Aborting.")
+    if len(paid_users) == 0:
+        print("No paid users found. Aborting.")
         return
 
     friends = client.getFriends()
@@ -224,6 +224,7 @@ def send_payments(client, paid_users: list[int]):
         payment.setCurrencyCode("BRL")
         created_payment, errors = client.createExpense(payment)
 
+        # Check if the payment was created successfully
         if created_payment and created_payment.getId():
             print(f"Payment sent for user {user.first_name}. ID {user_id}. Balance: {user_balance}")
         else:
@@ -232,3 +233,4 @@ def send_payments(client, paid_users: list[int]):
                 print("Errors:", errors)
             else:
                 print("No specific error was returned.")
+        print()

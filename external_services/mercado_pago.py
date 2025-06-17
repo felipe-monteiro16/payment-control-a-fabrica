@@ -203,9 +203,10 @@ def get_payment_link(user_debts, user_id) -> tuple[str, list[Debt]]:
             preference = preference_response["response"]
             payment_link = preference["init_point"]
 
-            # Criar JSON consolidado com total
+            # Create consolidated JSON with total
             payment_data.to_payment_json(user_id, preference_data, payment_link)
             return payment_link, payment_items
+
         # If the response is not 201, print the error and exit
         print(
             f"Error creating payment link: {preference_response['response']}."
@@ -217,12 +218,14 @@ def get_payment_link(user_debts, user_id) -> tuple[str, list[Debt]]:
         sys.exit("Failed to create payment link.")
 
 
-def get_paid_debts():
+def get_paid_debts() -> list[int]:
     """Verify the debts, remove from json and return the paid."""
     if not os.path.exists("payment_data.json"):
-        print("No payment data found.")
-        return []
+        # create an empty payment_data.json if it doesn't exist
+        with open("payment_data.json", "w", encoding="utf-8") as json_file:
+            json.dump([], json_file, indent=4, ensure_ascii=False)
 
+    # Load the payment data from the JSON file
     with open("payment_data.json", "r", encoding="utf-8") as json_file:
         try:
             payment_entries = json.load(json_file)
@@ -231,32 +234,36 @@ def get_paid_debts():
             print("Error decoding payment data.")
             return []
 
-    # Inicializa MercadoPago SDK corretamente
+    # Initialize the PaymentData instance
     payment_data = PaymentData()
     sdk = payment_data.settings
 
-    # Busca pagamentos aprovados
+    # Search for all payments
     search_result = sdk.payment().search({})
 
-    # Lista de referências pagas
-    paid_references = [
-        {"reference": payment["external_reference"], "user_id": debt["user_id"]}
-        for debt in all_debts
+    # Build a lookup for approved payments by external_reference
+    approved_payments = {
+        payment["external_reference"]: payment
         for payment in search_result["response"]["results"]
-        if payment["status"] == "approved" and
-           payment["external_reference"] == debt["external_reference"]
+        if payment["status"] == "approved"
+    }
+
+    paid_references = [
+        {"reference": ref, "user_id": debt["user_id"]}
+        for debt in all_debts
+        if (ref := debt["external_reference"]) in approved_payments
     ]
 
-    # Coletar IDs de usuários cujas dívidas foram pagas
+    # Collect user IDs whose debts were paid
     user_ids = [entry['user_id'] for key, entry in enumerate(paid_references)]
 
-    # Remover do all_debts os débitos que têm uma referência paga
+    # Remove from all_debts the debts that have a paid reference
     all_debts = [
         debt for debt in all_debts
         if debt["external_reference"] not in [entry["reference"] for entry in paid_references]
     ]
 
-    # Sobrescrever o payment_data com os novos débitos não pagos
+    # Overwrite the payment_data with the new unpaid debts
     with open("payment_data.json", "w", encoding="utf-8") as json_file:
         json.dump(all_debts, json_file, indent=4, ensure_ascii=False)
 
