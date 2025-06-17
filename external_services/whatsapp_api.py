@@ -24,7 +24,7 @@ class Debt:
 
 @dataclass
 class MessageData:
-    """Proccess the data for sending messages via WhatsApp API."""
+    """Process the data for sending messages via WhatsApp API."""
     payment_items: list[Debt] = None
 
     def __init__(self, payment_items: list[dict[str, float]] = None):
@@ -101,7 +101,12 @@ def send_debt_to_user(
     user_contact = message_data.get_user_contact(user_id)
     current_month = message_data.current_month
     items = message_data.to_whatsapp_payload
-    content_link = payment_link.split("pref_id=")[1]
+
+    content_link = ""
+    if "pref_id=" in payment_link:
+        content_link = payment_link.split("pref_id=", 1)[1]
+    else:
+        raise ValueError("The payment_link does not contain 'pref_id='.")
 
     url = f"https://graph.facebook.com/v19.0/{phone_number_id}/messages"
     headers = {
@@ -121,11 +126,11 @@ def send_debt_to_user(
                     "parameters": [
                         {"type": "text", "text": user_contact["name"]},
                         {"type": "text", "text": current_month},
-                        {"type": "text", "text": items["mensalidade"]},
-                        {"type": "text", "text": items["almoço"]},
-                        {"type": "text", "text": items["geladeira"]},
-                        {"type": "text", "text": items["taxas"]},
-                        {"type": "text", "text": items["total"]}
+                        {"type": "text", "text": items.get("mensalidade", "")},
+                        {"type": "text", "text": items.get("almoço", "")},
+                        {"type": "text", "text": items.get("geladeira", "")},
+                        {"type": "text", "text": items.get("taxas", "")},
+                        {"type": "text", "text": items.get("total", "")}
                     ]
                 },
                 {
