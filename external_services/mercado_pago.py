@@ -220,20 +220,6 @@ def get_payment_link(user_debts, user_id) -> tuple[str, list[Debt]]:
 
 def get_paid_debts() -> list[int]:
     """Verify the debts, remove from json and return the paid."""
-    if not os.path.exists("payment_data.json"):
-        # create an empty payment_data.json if it doesn't exist
-        with open("payment_data.json", "w", encoding="utf-8") as json_file:
-            json.dump([], json_file, indent=4, ensure_ascii=False)
-
-    # Load the payment data from the JSON file
-    with open("payment_data.json", "r", encoding="utf-8") as json_file:
-        try:
-            payment_entries = json.load(json_file)
-            all_debts = [entry for entry in payment_entries if entry.get("valor_total", 0) > 0]
-        except json.JSONDecodeError:
-            print("Error decoding payment data.")
-            return []
-
     # Initialize the PaymentData instance
     payment_data = PaymentData()
     sdk = payment_data.settings
@@ -241,30 +227,20 @@ def get_paid_debts() -> list[int]:
     # Search for all payments
     search_result = sdk.payment().search({})
 
-    # Build a lookup for approved payments by external_reference
-    approved_payments = {
-        payment["external_reference"]: payment
+    # Filter the payments
+    filtered_payments = [
+        payment["external_reference"] 
         for payment in search_result["response"]["results"]
-        if payment["status"] == "approved"
-    }
-
-    paid_references = [
-        {"reference": ref, "user_id": debt["user_id"]}
-        for debt in all_debts
-        if (ref := debt["external_reference"]) in approved_payments
+        if (
+            datetime.fromisoformat(payment["date_created"]).month == datetime.now().month and
+            datetime.fromisoformat(payment["date_created"]).year == datetime.now().year and
+            payment["status"] == "approved" and
+            payment["external_reference"] is not None
+        )
     ]
 
-    # Collect user IDs whose debts were paid
-    user_ids = [entry['user_id'] for key, entry in enumerate(paid_references)]
-
-    # Remove from all_debts the debts that have a paid reference
-    all_debts = [
-        debt for debt in all_debts
-        if debt["external_reference"] not in [entry["reference"] for entry in paid_references]
-    ]
-
-    # Overwrite the payment_data with the new unpaid debts
-    with open("payment_data.json", "w", encoding="utf-8") as json_file:
-        json.dump(all_debts, json_file, indent=4, ensure_ascii=False)
+    # Extract user IDs from the approved payments
+    print(filtered_payments)
+    user_ids = [int(ref.split("_")[0]) for ref in filtered_payments]
 
     return user_ids

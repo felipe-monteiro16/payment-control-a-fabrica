@@ -167,10 +167,7 @@ def create_user_debts(client, csv_path, description) -> tuple[list[dict], str]:
 
 def send_payments(client, paid_users: list[int]):
     """Send payments of the paid users to the Splitwise API."""
-    if not paid_users:
-        print("No paid users provided. Aborting.")
-        return
-    if len(paid_users) == 0:
+    if len(paid_users) == 0 or not paid_users:
         print("No paid users found. Aborting.")
         return
 
@@ -197,8 +194,9 @@ def send_payments(client, paid_users: list[int]):
                     print(f"Error getting balance for user {user.first_name}. ID {user_id}: {e}")
                 break
 
-        if user_balance is None:
-            print(f"No valid balance found for user {user.first_name}. ID {user_id}.")
+        # If the user has no balance or is already paid off, skip
+        if user_balance is None or float(user_balance) <= 0:
+            print(f"The user is already paid off. Name {user.first_name}. ID {user_id}.")
             continue
 
         # Creating payment
