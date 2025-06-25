@@ -14,12 +14,12 @@ class ExternalServices:
 
     def send_debt_to_user(
         self,
-        user_id: int,
+        user_contact: dict[str, str],
         payment_link: str,
         payment_items: list[dict[str, float]]
     ):
         """Send the payment link and items to the user."""
-        send_debt_to_user(user_id, payment_link, payment_items)
+        send_debt_to_user(user_contact, payment_link, payment_items)
 
 
     def get_paid_debts(self):

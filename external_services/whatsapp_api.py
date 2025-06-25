@@ -47,13 +47,6 @@ class MessageData:
         return phone_number_id, access_token
 
 
-    def get_user_contact(self, user_id: int) -> dict[str, str]:
-        """Get the user's contact information from the CSV file."""
-        data_access = DataAccess()
-        user_contact = data_access.get_user_contact(user_id)
-        return user_contact
-
-
     @property
     def current_month(self) -> str:
         """Get the current month in the format 'MM/YY'."""
@@ -93,7 +86,7 @@ class MessageData:
 
 
 def send_debt_to_user(
-    user_id: int,
+    user_contact: dict[str, str],
     payment_link: str,
     payment_items: list[dict[str, float]]
 ) -> None:
@@ -101,7 +94,6 @@ def send_debt_to_user(
 
     message_data = MessageData(payment_items)
     phone_number_id, access_token = message_data.env()
-    user_contact = message_data.get_user_contact(user_id)
     current_month = message_data.current_month
     items = message_data.to_whatsapp_payload
 
