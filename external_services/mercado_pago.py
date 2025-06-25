@@ -156,7 +156,7 @@ class PaymentData:
             json.dump(payment_json, json_file, ensure_ascii=False, indent=4)
 
 
-def get_payment_link(user_debts, user_id) -> tuple[str, list[Debt]]:
+def create_payment_link(user_debts, user_id) -> tuple[str, list[Debt]]:
     """Get the payment link for the given user_id."""
     if user_debts is None:
         print("User debts cannot be None.")
@@ -229,7 +229,7 @@ def get_paid_debts() -> list[int]:
 
     # Filter the payments
     filtered_payments = [
-        payment["external_reference"] 
+        payment["external_reference"]
         for payment in search_result["response"]["results"]
         if (
             datetime.fromisoformat(payment["date_created"]).month == datetime.now().month and
@@ -240,7 +240,6 @@ def get_paid_debts() -> list[int]:
     ]
 
     # Extract user IDs from the approved payments
-    print(filtered_payments)
     user_ids = [int(ref.split("_")[0]) for ref in filtered_payments]
 
     return user_ids

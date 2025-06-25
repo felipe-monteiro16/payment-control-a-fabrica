@@ -36,6 +36,7 @@ class MessageData:
         else:
             self.payment_items = []
 
+
     def env(self):
         """Load environment variables for WhatsApp API credentials."""
         load_dotenv()
@@ -44,6 +45,7 @@ class MessageData:
         if not phone_number_id or not access_token:
             raise ValueError("WhatsApp API credentials are not set in the environment variables.")
         return phone_number_id, access_token
+
 
     def get_user_contact(self, user_id: int) -> dict[str, str]:
         """Get the user's contact information from the CSV file."""
@@ -56,6 +58,7 @@ class MessageData:
     def current_month(self) -> str:
         """Get the current month in the format 'MM/YY'."""
         return datetime.now().strftime("%m/%y")
+
 
     def get_total_value(self) -> float:
         """Calculate the total value of the payment items."""

@@ -1,5 +1,5 @@
 """External Services Layer for handling payment links and sending debts to users."""
-from .mercado_pago import get_payment_link, get_paid_debts
+from .mercado_pago import create_payment_link, get_paid_debts
 from .whatsapp_api import send_debt_to_user
 
 class ExternalServices:
@@ -7,9 +7,9 @@ class ExternalServices:
     def __init__(self):
         self.services = {}
 
-    def get_payment_link(self, user_debts, user_id) -> tuple[str, list[dict[str, float]]]:
+    def create_payment_link(self, user_debts, user_id) -> tuple[str, list[dict[str, float]]]:
         """Get the payment link for the given user_debts."""
-        return get_payment_link(user_debts, user_id)
+        return create_payment_link(user_debts, user_id)
 
 
     def send_debt_to_user(
