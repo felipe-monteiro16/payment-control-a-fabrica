@@ -17,5 +17,6 @@ def get_number_from_csv(user_id) -> List[Dict[str, Any]]:
                 user["phone_number"] = row.get("phone_number")
                 break
     if not user:
-        raise ValueError(f"No contact found for user_id {user_id} in {file_path}")
+        print(f"No contact found for user_id {user_id} in {file_path}")
+        return []
     return user

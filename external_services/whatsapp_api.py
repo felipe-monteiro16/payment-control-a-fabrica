@@ -4,7 +4,6 @@ from datetime import datetime
 from dataclasses import dataclass
 from dotenv import load_dotenv
 import requests
-from data_access import DataAccess
 
 
 @dataclass
@@ -91,6 +90,9 @@ def send_debt_to_user(
     payment_items: list[dict[str, float]]
 ) -> None:
     """Send the payment link and items to the user via WhatsApp API."""
+    if not user_contact or not payment_link or not payment_items:
+        print("User contact, payment link, and payment items must be provided.")
+        return
 
     message_data = MessageData(payment_items)
     phone_number_id, access_token = message_data.env()

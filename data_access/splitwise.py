@@ -94,6 +94,7 @@ def get_user_debts(client, friend_id) -> list[dict[str, float]]:
                         {'description': expense.description, 'value': abs(float(balance))}
                     )
                     break
+        
         # If the friend aren't in the expense, we append a zero balance
         if len_friend_balances == len(friend_balances):
             friend_balances.append(
@@ -102,7 +103,6 @@ def get_user_debts(client, friend_id) -> list[dict[str, float]]:
 
         # Stop after 3 valid expenses
         if valid_expenses_cont == 3:
-
             return friend_balances
 
     # If we reach here, it means we didn't find 3 expenses for the friend
