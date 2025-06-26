@@ -16,11 +16,17 @@ Then, install depencencies by running:
 ```
 poetry install
 ```
+
+Temporary: If it gets an error, try:
+```
+poery install --no-root
+```
+
 ### File `.env`
 
-In the project root, create an `.env` file to store the Splitwise keys, Mercado Pago API token, Whatsapp API keys, you can get these keys from the project administrators.
+In the project root, create an `.env` file to store the Splitwise keys, Mercado Pago API token, Whatsapp API keys, you can get those keys from the project administrators.
 
-The `.env` file have to contain these following Splitwise environment variables.
+The `.env` file have to contain these following environment variables.
 
 ```
 # SPLITWISE KEYS
@@ -34,12 +40,6 @@ ACCESS_TOKEN=mercado_pago_access_token_here
 # WHATSAPP KEYS
 WHATSAPP_PHONE_NUMBER_ID=your_whatsapp_phone_number_id_here
 WHATSAPP_ACCESS_TOKEN=your_whatsapp_access_token_here
-```
-
-And the Mercado Pago Access Token:
-
-```
-ACCESS_TOKEN=mercado_pago_access_token_here
 ```
 
 After these steps, your project will be ready to run.
@@ -56,10 +56,6 @@ In the project root, open the terminal and run:
 poetry run python main.py get-users
 ```
 
-Temporary: If it gets an error, try:
-```
-poetry run python main.py get-users --no-root
-```
 
 After running, on browser, open the link that appeared on terminal and authorize the access.
 
@@ -67,7 +63,7 @@ After authorizing, click on the text:
 
 `Click to show out of band authentication information`
 
-Copy the `oauth_verifier` that appears:
+Copy the `oauth_verifier`:
 
 ```
 params[:oauth_verifier] is <oauth_verifier_here>
@@ -77,7 +73,7 @@ Paste on terminal and press ENTER.
 
 The tokens will be saved on `access_token.json` file. If these tokens expire, you'll need to do this process again to keep the access of the `Splitwise API`.
 
-Done! If everything went well, will have appeared the `users list` on terminal.
+Done! If everything went well, it will have show the `users list` on terminal.
 
 ## Commands
 
@@ -114,20 +110,35 @@ poetry run python main.py --help
     ```
     The payment link and the items table will be displayed.
 
-* `send-payment-link`: Get user debts, create a Mercado Pago payment link, and send it to the user via WhatsApp.
+* `send-payment-link`: Retrieves a user's debts, generates a Mercado Pago payment link, and sends it to the user via WhatsApp.
+
+    Ensure the `contacts.csv` is located on `data_access/src/` with the following headers
+    ```
+    splitwise_id,name,phone_number
+    ```
+    Populate this csv file with the users data.
 
     Usage example:
     ```
     poetry run python main.py send-payment-link USER-ID
     ```
-    The payment link will be sent to the user.
+    This command will automatically generate the payment link and send it to the specified user via WhatsApp.
 
-* `create-user-debts`: Create user debts in Splitwise from a CSV file.
+* `create-user-debts`: Create user debts in Splitwise based on data from a CSV file.
 
     Usage example:
     ```
     poetry run python main.py create-user-debts --path data_access/src/debts.csv --description "Expense description"
     ```
+    
+    The CSV file containing the debts must be present at the path you provide with the --path option.
+
+    The CSV must have the following headers:
+    ```
+    user_id,name,value
+    ```
+    Fill the csv file with the debts data.
+
     The debts will be created in Splitwise and shown in the CLI.
 
 * `get-paid-debts`: Verify paid users (via Mercado Pago) and send payments to Splitwise.
