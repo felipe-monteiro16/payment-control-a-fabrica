@@ -46,7 +46,7 @@ class DebtProcessor:
             return expenses, total_amount
 
 
-    def to_dict(self, expenses: list[Debt]) -> list[dict]:
+    def to_dict(self, expenses: list[Debt]) -> list[dict[str, str]]:
         """Convert a list of Debt objects to a list of dictionaries."""
         return [
             {
@@ -94,7 +94,7 @@ def get_user_debts(client, friend_id) -> list[dict[str, float]]:
                         {'description': expense.description, 'value': abs(float(balance))}
                     )
                     break
-        
+
         # If the friend aren't in the expense, we append a zero balance
         if len_friend_balances == len(friend_balances):
             friend_balances.append(
