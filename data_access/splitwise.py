@@ -1,19 +1,9 @@
 """Data Access Layer for Splitwise API"""
-import csv
-from dataclasses import dataclass
 from splitwise.expense import Expense
 from splitwise.user import ExpenseUser
+from data_classes import Debt, ExpenseDebt
 
 
-@dataclass
-class Debt:
-    """Class to represent user balance."""
-    id: str
-    name: str
-    value: str
-
-
-@dataclass
 class DebtProcessor:
     """Class to process user debts."""
     def __init__(self, client, csv_path: str = "data_access/src/debts.csv"):
@@ -22,40 +12,21 @@ class DebtProcessor:
         self.user_id = client.getCurrentUser().id
 
 
-    def load_csv(self) -> tuple[list, float]:
-        """Load CSV file and return a dictionary with user IDs and their debts."""
-        with open(self.csv_path, newline='', encoding='utf-8') as csvfile:
-            reader = csv.DictReader(csvfile)
-            expenses: list[Debt] = []
-            total_amount = 0.0
-            for row in reader:
-                if row["UserID"].strip() == self.user_id or row["UserID"].strip() == "":
-                    print("Skipping the current user from the CSV file.")
-                    continue
-                try:
-                    user_id = str(row["user_id"].strip())
-                    amount = float(row["value"].strip().replace("R$", "").replace(",", "."))
-                except ValueError:
-                    print(f"Failed to convert data: {row}")
-                    continue
-
-                total_amount += amount
-                expenses.append(
-                    Debt(id=user_id, name=row["name"].strip(), value=str(amount))
-                )
-            return expenses, total_amount
-
-
-    def to_dict(self, expenses: list[Debt]) -> list[dict[str, str]]:
+    def to_dict(self, expenses: list[ExpenseDebt]) -> list[dict[str, str]]:
         """Convert a list of Debt objects to a list of dictionaries."""
         return [
             {
                 "user_id": expense.id,
-                "name": expense.name,
+                "name": expense.label,
                 "value": expense.value,
             }
             for expense in expenses
         ]
+
+
+    def get_total_amount(self, expenses: list[ExpenseDebt]) -> float:
+        """Get the total amount from a list of Debt objects."""
+        return sum(float(expense.value) for expense in expenses)
 
 
 def get_all_users(client):
@@ -76,7 +47,7 @@ def get_all_users(client):
     return users
 
 
-def get_user_debts(client, friend_id) -> list[dict[str, float]]:
+def get_user_debts(client, friend_id) -> list[Debt]:
     """Get user debts from the last month by ID."""
     valid_expenses_cont = 0
     friend_balances = []
@@ -91,14 +62,14 @@ def get_user_debts(client, friend_id) -> list[dict[str, float]]:
                 balance = user.getNetBalance()
                 if balance: # Only append if there is a valid balance
                     friend_balances.append(
-                        {'description': expense.description, 'value': abs(float(balance))}
+                        Debt(label=expense.description, value=abs(float(balance)))
                     )
                     break
 
         # If the friend aren't in the expense, we append a zero balance
         if len_friend_balances == len(friend_balances):
             friend_balances.append(
-                {'description': expense.description, 'value': 0.00}
+                Debt(label=expense.description, value=0.00)
             )
 
         # Stop after 3 valid expenses
@@ -112,7 +83,7 @@ def get_user_debts(client, friend_id) -> list[dict[str, float]]:
     return None
 
 
-def create_user_debts(client, csv_path, description) -> tuple[list[dict], str]:
+def create_user_debts(client, csv_path, description, expenses) -> tuple[list[dict], str]:
     """Create a new expense based on a CSV file with user debts."""
 
     participants = []
@@ -120,7 +91,8 @@ def create_user_debts(client, csv_path, description) -> tuple[list[dict], str]:
     user_id = client.getCurrentUser().id
 
     debt_processor = DebtProcessor(client, csv_path)
-    expenses, total_amount = debt_processor.load_csv()
+    total_amount = debt_processor.get_total_amount(expenses)
+
     if total_amount <= 0:
         print("Total amount is zero or negative. Aborting.")
         return
@@ -156,7 +128,7 @@ def create_user_debts(client, csv_path, description) -> tuple[list[dict], str]:
 
     if created_expense and created_expense.getId():
         print(f"Expense created successfully! ID: {created_expense.getId()}")
-        return debt_processor.to_dict(expenses), description
+        return expenses, description
     print("Failed to create expense.")
     if errors:
         print("Errors:", errors)

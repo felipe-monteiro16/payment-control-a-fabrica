@@ -4,21 +4,7 @@ from datetime import datetime
 from dataclasses import dataclass
 from dotenv import load_dotenv
 import requests
-
-
-@dataclass
-class Debt:
-    """Class to represent user balance."""
-    description: str
-    value: float
-
-
-    @property
-    def full_description(self):
-        """Get the description of the balance."""
-        # Format the description with the value and date
-        month_year = MessageData().current_month()
-        return f"{self.description.capitalize()} {month_year}"
+from data_classes import Debt, Contact
 
 
 @dataclass
@@ -29,7 +15,7 @@ class MessageData:
     def __init__(self, payment_items: list[dict[str, float]] = None):
         if payment_items:
             self.payment_items = [
-                Debt(debt["description"], float(debt["value"]))
+                Debt(debt.label, float(debt.value))  # Ensure value is a float
                 for debt in payment_items
             ]
         else:
@@ -65,29 +51,36 @@ class MessageData:
 
         def get_spaces(value: str) -> str:
             """Get the number of spaces needed to align the values."""
-            return " " * (7 - len(value))
+            return " " * (len("0000,00") - len(value))
 
 
         for item in self.payment_items:
             item.value = f"{get_spaces(item.value)}{item.value}"
 
 
-    @property
     def to_whatsapp_payload(self):
         """Convert the payment items to a format suitable for WhatsApp API."""
         self.get_total_value()
         self.align_payment_values()
         parameters = {}
         for item in self.payment_items:
-            description = item.description.split()[0].lower()
-            parameters[description] = item.value
+            label = item.label.split()[0].lower()
+            parameters[label] = item.value
         return parameters
 
 
+    def get_debt_value(self, label: str) -> str:
+        """Get the value of a specific debt item."""
+        for item in self.payment_items:
+            if item.label.lower() == label.lower():
+                return item.value
+        return "0,00"
+
+
 def send_debt_to_user(
-    user_contact: dict[str, str],
+    user_contact: Contact,
     payment_link: str,
-    payment_items: list[dict[str, float]]
+    payment_items: list[Debt] = None
 ) -> None:
     """Send the payment link and items to the user via WhatsApp API."""
     if not user_contact or not payment_link or not payment_items:
@@ -97,7 +90,7 @@ def send_debt_to_user(
     message_data = MessageData(payment_items)
     phone_number_id, access_token = message_data.env()
     current_month = message_data.current_month
-    items = message_data.to_whatsapp_payload
+    message_data.to_whatsapp_payload()
 
     content_link = ""
     if "pref_id=" in payment_link:
@@ -112,7 +105,7 @@ def send_debt_to_user(
     }
     payload = {
         "messaging_product": "whatsapp",
-        "to": user_contact["phone_number"],
+        "to": user_contact.phone_number,
         "type": "template",
         "template": {
             "name": "resumo_mensal_a_fabrica",
@@ -121,13 +114,13 @@ def send_debt_to_user(
                 {
                     "type": "body",
                     "parameters": [
-                        {"type": "text", "text": user_contact["name"]},
+                        {"type": "text", "text": user_contact.name},
                         {"type": "text", "text": current_month},
-                        {"type": "text", "text": items.get("mensalidade", "")},
-                        {"type": "text", "text": items.get("almoço", "")},
-                        {"type": "text", "text": items.get("geladeira", "")},
-                        {"type": "text", "text": items.get("taxas", "")},
-                        {"type": "text", "text": items.get("total", "")}
+                        {"type": "text", "text": message_data.get_debt_value("mensalidade")},
+                        {"type": "text", "text": message_data.get_debt_value("almoço")},
+                        {"type": "text", "text": message_data.get_debt_value("geladeira")},
+                        {"type": "text", "text": message_data.get_debt_value("taxas")},
+                        {"type": "text", "text": message_data.get_debt_value("total")}
                     ]
                 },
                 {

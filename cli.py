@@ -1,145 +1,147 @@
 """Interface for Splitwise API using Typer"""
-from dataclasses import dataclass
-from datetime import datetime, timezone
+from data_classes import Debt, ExpenseDebt, get_current_month
 
 
-def get_current_month() -> str:
-    """Get the current month in the format 'MM/YY'."""
-    return datetime.now(timezone.utc).strftime("%m/%y")
-
-@dataclass
-class Debt:
-    """Class to represent user debt."""
-    description: str
-    value: float
-
-    @property
-    def full_description(self) -> str:
-        """Get the description of the debt."""
-        # Format the description with the value and date
-        return f"{self.description} - {get_current_month()}"
-
-
-@dataclass
 class Cli:
     """Command Line Interface for Splitwise API operations."""
-    def __init__(self, debts: list[dict[str, float]] = None):
-        # Set default widths
-        self.description_width = 18
-        self.value_width = 7
-        self.full_width = self.description_width + self.value_width + 3  # 3 for " R$"
+    expense_debts: list[Debt] = []
+    expense_debts: list[ExpenseDebt] = []
 
+
+    def __init__(self):
+        # Set default widths
+        self.label_width = 18
+        self.value_width = 7
+        self.full_width = self.label_width + self.value_width + 3  # 3 for " R$"
+
+
+    def process_debts(self, debts: list[Debt]) -> None:
+        """Convert a list of Debt objects to a list of Debt objects."""
         # Initialize user debts
         if debts:
-            self.user_debts = [
+            self.expense_debts = [
                 Debt(
-                    item["description"].split()[0].capitalize(),
-                    float(item['value'])  # Format value to Brazilian currency style
+                    label=item.label.split()[0].capitalize(),
+                    value=float(item.value)  # Format value to Brazilian currency style
                 )
                 for item in debts
             ]
         else:
-            self.user_debts = []
+            self.expense_debts = []
 
 
-    def get_widths(self) -> tuple[int, int]:
-        """Get the widths of the description and value columns."""
-        if not self.user_debts:
-            return self.description_width, self.value_width, self.full_width
+    def process_expense_debts(self, expenses: list[ExpenseDebt]) -> None:
+        """Test"""
+        # Initialize expense debts
+        if expenses:
+            self.expense_debts = expenses
+        else:
+            self.expense_debts = []
 
-        # Calculate the minimum widths based on the longest description and value
-        self.description_width = max(
-            len(item.description)
-            for item in self.user_debts
+
+    def get_widths(self, title = None) -> tuple[int, int]:
+        """Get the widths of the label and value columns."""
+        if not self.expense_debts and not self.expense_debts:
+            return self.label_width, self.value_width, self.full_width
+
+        # Calculate the minimum widths based on the longest label and value
+        self.label_width = max(
+            len(item.label)
+            for item in self.expense_debts
         )
 
         self.value_width = len("9999,99")  # Fixed width for value column
 
-        self.full_width = self.description_width + self.value_width + 3  # 3 for " R$"
-        return self.description_width, self.value_width, self.full_width
+        self.full_width = self.label_width + self.value_width + 3  # 3 for " R$"
+        if title and len(title) > self.full_width:
+            self.full_width = len(title) + 3
+        return self.label_width, self.value_width, self.full_width
 
 
-    @property
-    def table_line(self) -> str:
+    def table_line(self, full_width=None) -> str:
         """Generate a table line with the given character"""
-        # Description width + Value width + 3 of the fixed string " R$"
-        return "-" * self.full_width
+        # Label width + Value width + 3 of the fixed string " R$"
+        return "-" * (full_width if full_width else self.full_width)
 
 
     def items_sum(self) -> float:
         """Calculate the sum of the values in the items."""
-        return sum(item.value for item in self.user_debts)
+        return sum(item.value for item in self.expense_debts)
 
 
 def show_all_users(users: list[dict[str, str]]) -> None:
     """Show all users from Splitwise API"""
     for user in users:
-        print(f"User ID: {user['id']}, Name: {user['first_name']} {user['last_name']}")
+        print(f"User ID: {user['id']} | Name: {user['first_name']} {user['last_name']}")
 
 
 def show_user_debts(debts: list[dict[str, float]]) -> None:
     """Show all user debts from the last month"""
-    cli = Cli(debts)
-    debts = cli.user_debts
-    description_w, value_w, full_w = cli.get_widths()
+    cli = Cli()
+    # Process the debts and calculate widths
+    cli.process_debts(debts)
+    label_w, value_w, full_w = cli.get_widths()
     value_items_sum = cli.items_sum()
 
     # Print the payment items
     print("Items:\n")
     print(f"{f'RESUMO - {get_current_month()}': ^{full_w}}")
-    print(cli.table_line)
-    for item in debts:
-        # Print the item with aligned description and value
+    print(cli.table_line())
+    for item in cli.expense_debts:
+        # Print the item with aligned label and value
         print(
-            f"{item.description: <{description_w}} "
+            f"{item.label: <{label_w}} "
             f"R${item.value: >{value_w}.2f}"
         )
-    print(cli.table_line)
-    print(f"{'Total': <{description_w}} R${value_items_sum: >{value_w}.2f}")
+    print(cli.table_line())
+    print(f"{'Total': <{label_w}} R${value_items_sum: >{value_w}.2f}")
     print("\n")
 
 
 def show_payment_link(payment_link: str, user_debts: list[dict[str, float]]) -> None:
     """Show payment link and items"""
-    cli = Cli(user_debts)
-    user_debts = cli.user_debts
+    cli = Cli()
+    cli.process_debts(user_debts)
     value_items_sum = cli.items_sum()
-    description_w, value_w, full_w = cli.get_widths()
+    label_w, value_w, full_w = cli.get_widths()
 
     # Print the payment link
-    print(cli.table_line)
+    print(cli.table_line())
     print(f"\nPayment Link: {payment_link}\n")
-    print(cli.table_line)
+    print(cli.table_line())
 
     # Print the payment items
     print("Items:\n")
     print(f"{f'RESUMO - {get_current_month()}': ^{full_w}}")
-    print(cli.table_line)
-    for item in user_debts:
-        # Print the item with aligned description and value
+    print(cli.table_line())
+    for item in cli.expense_debts:
+        # Print the item with aligned label and value
         print(
-            f"{item.description: <{description_w}} "
+            f"{item.label: <{label_w}} "
             f"R${item.value: >{value_w}.2f}"
         )
-    print(cli.table_line)
-    print(f"{'Total': <{description_w}} R${value_items_sum: >{value_w}.2f}")
+    print(cli.table_line())
+    print(f"{'Total': <{label_w}} R${value_items_sum: >{value_w}.2f}")
     print("\n")
 
 
-def show_created_payment(items: dict[str, str, str], title:str) -> None:
+def show_created_payment(expense_debts: list[ExpenseDebt], title: str) -> None:
     """Show created payment details"""
     # logic to display the created payment details
-    cli = Cli(items)
-    print("Payment created successfully!")
-    content_width = max(len(item['name']) for item in items)
+    if not expense_debts:
+        print("No items to display.")
+        return
+    cli = Cli()
+    cli.process_expense_debts(expense_debts)
+    #get the widths for the table
+    content_width, value_width, _ = cli.get_widths(title)
 
     total_value = cli.items_sum()
-    print(cli.table_line)
-    print(f"| {title: ^{content_width+cli.value_width + 4}} |")
-    print(cli.table_line)
-    for item in items:
-        print(f"| {item['name']: <{content_width}} R$ {item['value']: >{cli.value_width}.2f} |")
-    print(cli.table_line)
-    print(f"| {'Total': <{content_width}} R$ {total_value: >{cli.value_width}.2f} |")
-    print(cli.table_line)
+    print()
+    print(f"{title: ^{content_width+value_width + 4}}")
+    print(cli.table_line())
+    for debt in expense_debts:
+        print(f"{debt.label: <{content_width}} R${debt.value: >{value_width}.2f}")
+    print(cli.table_line())
+    print(f"{'Total': <{content_width}} R${total_value: >{value_width}.2f}")
     print("\n")

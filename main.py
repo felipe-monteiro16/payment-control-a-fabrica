@@ -3,6 +3,7 @@ import typer # type: ignore
 from data_access import DataAccess
 from external_services import ExternalServices
 from cli import show_all_users, show_user_debts, show_payment_link, show_created_payment
+from data_classes import Debt, ExpenseDebt
 
 app = typer.Typer()
 
@@ -67,9 +68,9 @@ def send_payment_link(user_id: int) -> None:
 
 @app.command()
 def create_user_debts(
-    p: str = typer.Option(
+    path: str = typer.Option(
         "data_access/src/debts.csv", "--path", "-p", help="Path to the CSV file with user debts."),
-    d: str = typer.Option(
+    description: str = typer.Option(
         ..., "--description", "-d", help="Description of the expense."
     )
 ) -> None:
@@ -77,10 +78,13 @@ def create_user_debts(
     # Initialize the Data Access Layer
     data_access = DataAccess()
 
-    # Create user debts with Splitwise API
-    expenses = data_access.create_user_debts(p, d)
-
-    show_created_payment(expenses, d)
+    # Create user debts with Splitwise
+    debts = data_access.get_debts_from_csv(csv_path=path)
+    print(debts)
+    expenses, description = data_access.create_user_debts(path, description, debts)
+    #expenses = [ExpenseDebt(id='96123801', label='felipe', value=2.0)]
+    print(expenses)
+    show_created_payment(expenses, description)
 
 
 @app.command()

@@ -2,30 +2,14 @@
 import os
 import sys
 import json
-from dataclasses import dataclass
 from datetime import datetime, timezone, timedelta
 from dotenv import load_dotenv
 import mercadopago
+from data_classes import Debt
 
 
-@dataclass
-class Debt:
-    """Class to represent user balance."""
-    description: str
-    value: float
-
-
-    @property
-    def full_description(self):
-        """Get the description of the balance."""
-        # Format the description with the value and date
-        month_year = datetime.now().strftime("%m/%y")
-        return f"{self.description} - {month_year}"
-
-
-@dataclass
 class PaymentData:
-    """Class to represent payment data."""
+    """Class to process payment data."""
     tax_percent: float = 0.0099
     user_debts: list[Debt] = None
     # email: str = None
@@ -54,7 +38,10 @@ class PaymentData:
         """Get the debts with Debt type"""
         if user_debts:
             self.user_debts = [
-                Debt(debt["description"], float(debt["value"]))
+                Debt(
+                    label=debt.label,
+                    value=float(debt.value)  # Ensure value is a float
+                )
                 for debt in user_debts
             ]
         else:
@@ -110,7 +97,7 @@ class PaymentData:
         """Convert user debts to JSON format for preference data."""
         return[
             {
-                "title": debt.description,
+                "title": debt.label,
                 "quantity": 1,
                 "unit_price": round(abs(debt.value), 2),
                 "currency_id": "BRL"
@@ -118,16 +105,6 @@ class PaymentData:
             for debt in self.user_debts
         ]
 
-
-    def to_dict(self):
-        """Convert user debts to a dictionary."""
-        return[
-            {
-                "description": debt.description,
-                "value": round(abs(debt.value), 2)
-            }
-            for debt in self.user_debts
-        ]
 
 
     def to_payment_json(self, user_id, preference_data, payment_link):
@@ -195,8 +172,6 @@ def create_payment_link(user_debts, user_id) -> tuple[str, list[Debt]]:
         "expiration_date_to": payment_data.expiration_to.isoformat(),
     }
 
-    # Create payment link
-    payment_items = payment_data.to_dict()
     try:
         preference_response = sdk.preference().create(preference_data)
         if preference_response["status"] == 201:
@@ -205,7 +180,7 @@ def create_payment_link(user_debts, user_id) -> tuple[str, list[Debt]]:
 
             # Create consolidated JSON with total
             payment_data.to_payment_json(user_id, preference_data, payment_link)
-            return payment_link, payment_items
+            return payment_link, payment_data.user_debts
 
         # If the response is not 201, print the error and exit
         print(
