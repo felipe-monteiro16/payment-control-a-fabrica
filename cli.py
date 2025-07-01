@@ -52,15 +52,15 @@ class Cli:
 
         self.value_width = len("9999,99")  # Fixed width for value column
 
-        self.full_width = self.label_width + self.value_width + 3  # 3 for " R$"
+        self.full_width = self.label_width + self.value_width + 4  # 4 for " R$ "
         if title and len(title) > self.full_width:
-            self.full_width = len(title) + 3
+            self.full_width = len(title) + 4
         return self.label_width, self.value_width, self.full_width
 
 
     def table_line(self, full_width=None) -> str:
         """Generate a table line with the given character"""
-        # Label width + Value width + 3 of the fixed string " R$"
+        # Label width + Value width + 4 of the fixed string " R$ "
         return "-" * (full_width if full_width else self.full_width)
 
 
@@ -138,10 +138,10 @@ def show_created_payment(expense_debts: list[ExpenseDebt], title: str) -> None:
 
     total_value = cli.items_sum()
     print()
-    print(f"{title: ^{content_width+value_width + 4}}")
+    print(f"{title: ^{content_width+value_width + 5}}")
     print(cli.table_line())
     for debt in expense_debts:
-        print(f"{debt.label: <{content_width}} R${debt.value: >{value_width}.2f}")
+        print(f"{debt.label: <{content_width}} R$ {debt.value: >{value_width}.2f}")
     print(cli.table_line())
-    print(f"{'Total': <{content_width}} R${total_value: >{value_width}.2f}")
+    print(f"{'Total': <{content_width}} R$ {total_value: >{value_width}.2f}")
     print("\n")

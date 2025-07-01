@@ -3,7 +3,6 @@ import typer # type: ignore
 from data_access import DataAccess
 from external_services import ExternalServices
 from cli import show_all_users, show_user_debts, show_payment_link, show_created_payment
-from data_classes import Debt, ExpenseDebt
 
 app = typer.Typer()
 
@@ -80,10 +79,9 @@ def create_user_debts(
 
     # Create user debts with Splitwise
     debts = data_access.get_debts_from_csv(csv_path=path)
-    print(debts)
     expenses, description = data_access.create_user_debts(path, description, debts)
-    #expenses = [ExpenseDebt(id='96123801', label='felipe', value=2.0)]
-    print(expenses)
+
+    # Show created payment in the CLI
     show_created_payment(expenses, description)
 
 

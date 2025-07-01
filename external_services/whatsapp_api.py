@@ -72,9 +72,9 @@ class MessageData:
     def get_debt_value(self, label: str) -> str:
         """Get the value of a specific debt item."""
         for item in self.payment_items:
-            if item.label.lower() == label.lower():
+            if item.label.lower().split()[0] == label.lower():
                 return item.value
-        return "0,00"
+        return "   0,00"
 
 
 def send_debt_to_user(
