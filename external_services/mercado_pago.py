@@ -15,7 +15,7 @@ class PaymentData:
     # email: str = None
     expiration_from: datetime = None
     expiration_to: datetime = None
-
+    sdk = None
 
     def __init__(self):
         self.total_value = 0.0  # Initialize total_value in __init__
@@ -78,18 +78,28 @@ class PaymentData:
         """Set external reference to the payment"""
         version = 1
         external_reference = f"{user_id}_{self.current_month}_V{version}"
-
+        sdk = self.settings
         # Get correct version
-        with open("payment_data.json", "r", encoding="utf-8") as json_file:
-            try:
-                payment_data = json.load(json_file)
-                for entry in payment_data:
-                    if entry.get("external_reference") == external_reference:
-                        version+=1
-                        external_reference = f"{user_id}_{self.current_month}_V{version}"
-            except json.JSONDecodeError:
-                print("Error decoding payment data.")
-                return []
+        # Search for all payments
+        search_result = sdk.payment().search({})
+        # Filter the payments
+        filtered_payments = [
+            payment["external_reference"]
+            for payment in search_result["response"]["results"]
+            if (
+                payment["external_reference"] is not None and
+                payment["external_reference"].startswith(f"{user_id}_{self.current_month}_V")
+            )
+        ]
+        # Extract version numbers and find the maximum
+        versions = [
+            int(ref.split("_V")[-1]) for ref in filtered_payments if ref.startswith(f"{user_id}_{self.current_month}_V")
+        ]
+        if versions:
+            max_version = max(versions)
+            version = max_version + 1
+        else:
+            version = 1
         return external_reference
 
 
