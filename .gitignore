@@ -15,6 +15,7 @@ venv/
 tests_mercado_pago.py
 tests_whatsapp.py
 tests_splitwise.py
+trash/
 
 # Ignore csv and json files
 *.csv

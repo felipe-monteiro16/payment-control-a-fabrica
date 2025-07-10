@@ -1,7 +1,8 @@
 """Data Access Layer for Splitwise API"""
+from datetime import datetime, timedelta
 from splitwise.expense import Expense
 from splitwise.user import ExpenseUser
-from data_classes import Debt, ExpenseDebt
+from data_classes import Debt, ExpenseDebt, ExpenseType
 
 
 class DebtProcessor:
@@ -48,38 +49,40 @@ def get_all_users(client):
 
 
 def get_user_debts(client, friend_id) -> list[Debt]:
-    """Get user debts from the last month by ID."""
-    valid_expenses_cont = 0
+    """Get user debts from the last 30 days by ID."""
+    
     friend_balances = []
-    expenses = client.getExpenses(offset=0, limit=50) # What is the limit?
+    now = datetime.now()
+    thirty_days_ago = now - timedelta(days=30)
+    expenses = client.getExpenses(dated_after=thirty_days_ago.strftime("%Y-%m-%d"), limit=100)
     for expense in expenses:
-        if expense.payment: # Skip payment expenses
+        if expense.payment:  # Skip payment expenses
             continue
-        valid_expenses_cont += 1
         len_friend_balances = len(friend_balances)
+
+        # Find the debts for the specified friend
         for user in expense.getUsers():
             if user.id == friend_id:
                 balance = user.getNetBalance()
-                if balance: # Only append if there is a valid balance
+                if balance:  # Only append if there is a valid balance
                     friend_balances.append(
                         Debt(label=expense.description, value=abs(float(balance)))
                     )
                     break
 
-        # If the friend aren't in the expense, we append a zero balance
+        # If the friend isn't in the expense, we append a zero balance
         if len_friend_balances == len(friend_balances):
             friend_balances.append(
                 Debt(label=expense.description, value=0.00)
             )
 
-        # Stop after 3 valid expenses
-        if valid_expenses_cont == 3:
+        # Stop after len(ExpenseType) valid expenses
+        if len(friend_balances) == len(ExpenseType):
             return friend_balances
 
-    # If we reach here, it means we didn't find 3 expenses for the friend
+    # If we reach here, it means we didn't find enough expenses for the friend
     if friend_balances:
         return friend_balances
-        # return UserBalances(friend_balances)
     return None
 
 
@@ -89,7 +92,6 @@ def create_user_debts(client, csv_path, description, expenses) -> tuple[list[dic
     participants = []
     total_amount = 0
     user_id = client.getCurrentUser().id
-
     debt_processor = DebtProcessor(client, csv_path)
     total_amount = debt_processor.get_total_amount(expenses)
 

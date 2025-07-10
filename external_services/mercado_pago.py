@@ -12,7 +12,6 @@ class PaymentData:
     """Class to process payment data."""
     tax_percent: float = 0.0099
     user_debts: list[Debt] = None
-    # email: str = None
     expiration_from: datetime = None
     expiration_to: datetime = None
     sdk = None

@@ -14,8 +14,8 @@ def get_number_from_csv(user_id) -> List[Dict[str, Any]]:
         for row in reader:
             if row.get("splitwise_id") == str(user_id):
                 # Insert the user name and phone number into the dictionary
-                user.name = row.get("name")
-                user.phone_number = row.get("phone_number")
+                user.name = row.get("name").strip()
+                user.phone_number = row.get("phone_number").strip()
                 break
     if not user.name or not user.phone_number:
         print(f"No contact found for user_id {user_id} in {file_path}")

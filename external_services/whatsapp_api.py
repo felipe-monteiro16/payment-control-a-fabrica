@@ -1,13 +1,12 @@
 """Module to send messages via WhatsApp API."""
 import os
 from datetime import datetime
-from dataclasses import dataclass
+import sys
 from dotenv import load_dotenv
 import requests
 from data_classes import Debt, Contact
 
 
-@dataclass
 class MessageData:
     """Process the data for sending messages via WhatsApp API."""
     payment_items: list[Debt] = None
@@ -108,7 +107,7 @@ def send_debt_to_user(
         "to": user_contact.phone_number,
         "type": "template",
         "template": {
-            "name": "resumo_mensal_a_fabrica",
+            "name": "cobranca_mensal_a_fabrica",
             "language": { "code": "pt_BR" },
             "components": [
                 {
@@ -135,5 +134,10 @@ def send_debt_to_user(
         }
     }
     response = requests.post(url, json=payload, headers=headers, timeout=10)
-    print(response.status_code)
-    print(response.json())
+    if response.status_code == 200:
+        print(f"Message sent successfully to {user_contact.name}.")
+    else:
+        print(f"Failed to send message. Status code: {response.status_code}, "
+              f"Response: {response.text}")
+        print(f"WhatsApp API error: {response.status_code} - {response.text}")
+        sys.exit(1)
