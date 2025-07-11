@@ -7,10 +7,10 @@ from data_classes import Debt, ExpenseDebt, ExpenseType
 
 class DebtProcessor:
     """Class to process user debts."""
-    def __init__(self, client, csv_path: str = "data_access/src/debts.csv"):
-
-        self.csv_path = csv_path
-        self.user_id = client.getCurrentUser().id
+    def __init__(self, client = None, csv_path: str = None):
+        """Initialize the DebtProcessor with a Splitwise client and CSV path."""
+        self.csv_path = csv_path if csv_path else None
+        self.user_id = client.getCurrentUser().id if client else None
 
 
     def to_dict(self, expenses: list[ExpenseDebt]) -> list[dict[str, str]]:
@@ -28,6 +28,32 @@ class DebtProcessor:
     def get_total_amount(self, expenses: list[ExpenseDebt]) -> float:
         """Get the total amount from a list of Debt objects."""
         return sum(float(expense.value) for expense in expenses)
+
+
+    def verify_friend_balances(self, friend_balances: list[Debt]) -> bool:
+        """Verify if the friend balances match the expected expense types."""
+        if not friend_balances:
+            return False
+
+        # Get a list of expense types
+        expense_types = [expense.value.lower() for expense in ExpenseType]
+
+        # Check if each friend balance matches with an expense type
+        for balance in friend_balances:
+            balance.label = balance.label.split()[0].lower()  # Normalize the label to lowercase
+            for i, expense_type in enumerate(expense_types):
+                if expense_type == balance.label:
+                    # Remove the matched type to ensure one of each type is used
+                    del expense_types[i]
+                    break
+
+        if len(expense_types) == 0:
+            # All balances matched the expected expense types
+            return True
+
+        # If we reach here, a balance did not match any expense type
+        print("Not all balances matched the expected expense types.")
+        return False
 
 
 def get_all_users(client):
@@ -50,11 +76,14 @@ def get_all_users(client):
 
 def get_user_debts(client, friend_id) -> list[Debt]:
     """Get user debts from the last 30 days by ID."""
-    
     friend_balances = []
     now = datetime.now()
     thirty_days_ago = now - timedelta(days=30)
+
+    # Get the expenses from the last 30 days
     expenses = client.getExpenses(dated_after=thirty_days_ago.strftime("%Y-%m-%d"), limit=100)
+
+    # Get the friend debts
     for expense in expenses:
         if expense.payment:  # Skip payment expenses
             continue
@@ -78,11 +107,12 @@ def get_user_debts(client, friend_id) -> list[Debt]:
 
         # Stop after len(ExpenseType) valid expenses
         if len(friend_balances) == len(ExpenseType):
-            return friend_balances
+            # Verify if the friend balances match the expected expense types
+            debt_processor = DebtProcessor()
+            if debt_processor.verify_friend_balances(friend_balances):
+                return friend_balances
 
     # If we reach here, it means we didn't find enough expenses for the friend
-    if friend_balances:
-        return friend_balances
     return None
 
 

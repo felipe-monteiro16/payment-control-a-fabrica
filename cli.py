@@ -31,7 +31,7 @@ class Cli:
 
 
     def process_expense_debts(self, expenses: list[ExpenseDebt]) -> None:
-        """Test"""
+        """Process expense debts."""
         # Initialize expense debts
         if expenses:
             self.expense_debts = expenses
@@ -75,8 +75,11 @@ def show_all_users(users: list[dict[str, str]]) -> None:
         print(f"User ID: {user['id']} | Name: {user['first_name']} {user['last_name']}")
 
 
-def show_user_debts(debts: list[dict[str, float]]) -> None:
+def show_user_debts(debts: list[Debt]) -> None:
     """Show all user debts from the last month"""
+    if not debts:
+        print("No debts found for this user.")
+        return
     cli = Cli()
     # Process the debts and calculate widths
     cli.process_debts(debts)
@@ -98,10 +101,17 @@ def show_user_debts(debts: list[dict[str, float]]) -> None:
     print("\n")
 
 
-def show_payment_link(payment_link: str, user_debts: list[dict[str, float]]) -> None:
+def show_payment_link(payment_link: str, user_debts: list[Debt]) -> None:
     """Show payment link and items"""
+    if not payment_link or not user_debts:
+        print("No payment link or items to display.")
+        return
+
+    # Initialize the CLI and process the user debts
     cli = Cli()
     cli.process_debts(user_debts)
+
+    # Calculate the widths for the table
     value_items_sum = cli.items_sum()
     label_w, value_w, full_w = cli.get_widths()
 

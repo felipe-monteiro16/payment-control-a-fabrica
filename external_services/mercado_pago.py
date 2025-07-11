@@ -144,9 +144,9 @@ class PaymentData:
 
 def create_payment_link(user_debts, user_id) -> tuple[str, list[Debt]]:
     """Get the payment link for the given user_id."""
-    if user_debts is None:
-        print("User debts cannot be None.")
-        return None
+    if not user_debts or not isinstance(user_debts, list):
+        print("User debts cannot be empty.")
+        return None, None
 
     payment_data = PaymentData()
     payment_data.get_debts(user_debts)
@@ -154,7 +154,7 @@ def create_payment_link(user_debts, user_id) -> tuple[str, list[Debt]]:
     # Check if the user has debt
     if not payment_data.has_debts():
         print("User has no debts.")
-        return None
+        return None, None
 
     # Get the Mercado Pago SDK settings
     sdk = payment_data.settings

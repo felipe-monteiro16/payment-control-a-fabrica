@@ -64,6 +64,9 @@ def send_payment_link(user_id: int) -> None:
     user_contact = data_access.get_user_contact(user_id)
     external_services.send_debt_to_user(user_contact, payment_link, payment_items)
 
+    # Show payment link in the CLI
+    show_payment_link(payment_link, payment_items)
+
 
 @app.command()
 def create_user_debts(
