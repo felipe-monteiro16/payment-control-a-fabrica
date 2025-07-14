@@ -5,7 +5,7 @@ import json
 from datetime import datetime, timezone, timedelta
 from dotenv import load_dotenv
 import mercadopago
-from data_classes import Debt
+from core import Debt
 
 
 class PaymentData:

@@ -1,10 +1,9 @@
 """Module to send messages via WhatsApp API."""
 import os
-from datetime import datetime
 import sys
 from dotenv import load_dotenv
 import requests
-from data_classes import Debt, Contact
+from core import Debt, Contact, get_current_month
 
 
 class MessageData:
@@ -29,12 +28,6 @@ class MessageData:
         if not phone_number_id or not access_token:
             raise ValueError("WhatsApp API credentials are not set in the environment variables.")
         return phone_number_id, access_token
-
-
-    @property
-    def current_month(self) -> str:
-        """Get the current month in the format 'MM/YY'."""
-        return datetime.now().strftime("%m/%y")
 
 
     def get_total_value(self) -> float:
@@ -88,7 +81,7 @@ def send_debt_to_user(
 
     message_data = MessageData(payment_items)
     phone_number_id, access_token = message_data.env()
-    current_month = message_data.current_month
+    current_month = get_current_month()
     message_data.to_whatsapp_payload()
 
     content_link = ""

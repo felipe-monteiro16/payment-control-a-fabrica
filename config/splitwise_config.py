@@ -5,6 +5,7 @@ import sys
 from dotenv import load_dotenv # type: ignore
 from splitwise import Splitwise
 from splitwise.exception import SplitwiseUnauthorizedException # type: ignore
+ACCESS_TOKEN_PATH = "config/access_token.json"
 
 
 def pause() -> None:
@@ -15,7 +16,7 @@ def pause() -> None:
 
 def save_access_token(token: str) -> str:
     """Save the access token to a file."""
-    with open("access_token.json", "w", encoding="utf-8") as f:
+    with open(ACCESS_TOKEN_PATH, "w", encoding="utf-8") as f:
         json.dump(token, f)
 
 
@@ -39,13 +40,13 @@ def get_access_token(clt) -> None:
 
 def check_file_access_token(clt):
     """Check if the access token file exists."""
-    if os.path.exists("access_token.json"):
+    if os.path.exists(ACCESS_TOKEN_PATH):
         print("Access token file found.\n")
         return True
     print("Access token file not found.")
     print("Let's get a new access token.\n")
     get_access_token(clt)
-    if os.path.exists("access_token.json"):
+    if os.path.exists(ACCESS_TOKEN_PATH):
         return True
     print("Error: Get access token failed.\n")
     sys.exit()
@@ -60,7 +61,7 @@ def verify_access_token(clt):
         print("Failed Verify: Access token is invalid.")
         print(f"Error: {e}\n")
         print("Please delete the access token file and try again.\n")
-        os.remove("access_token.json")
+        os.remove(ACCESS_TOKEN_PATH)
         sys.exit()
     print("Access token is valid.\n")
     return True
@@ -74,7 +75,7 @@ def load_access_token(clt) -> str:
 
     # Load the access token from the file
     try:
-        with open("access_token.json", "r", encoding="utf-8") as f:
+        with open(ACCESS_TOKEN_PATH, "r", encoding="utf-8") as f:
             token = json.load(f)
             clt.setAccessToken(token)
             # Verify if the access token is valid

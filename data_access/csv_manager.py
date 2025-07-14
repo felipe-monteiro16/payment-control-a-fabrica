@@ -1,7 +1,7 @@
 """Get the information of contacts from a CSV file."""
 import csv
 from typing import List, Dict, Any
-from data_classes import ExpenseDebt, Contact
+from core import ExpenseDebt, Contact
 
 
 def get_number_from_csv(user_id) -> List[Dict[str, Any]]:

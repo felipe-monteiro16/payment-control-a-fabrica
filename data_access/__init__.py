@@ -1,6 +1,6 @@
 """Data Access Layer for Splitwise API"""
+from config.splitwise_config import config
 from .splitwise import get_all_users, get_user_debts, create_user_debts, send_payments
-from .splitwise_config import config
 from .csv_manager import get_number_from_csv, get_debts_from_csv
 
 class DataAccess:

@@ -2,7 +2,7 @@
 from datetime import datetime, timedelta
 from splitwise.expense import Expense
 from splitwise.user import ExpenseUser
-from data_classes import Debt, ExpenseDebt, ExpenseType
+from core import Debt, ExpenseDebt, ExpenseType
 
 
 class DebtProcessor:

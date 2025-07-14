@@ -1,5 +1,5 @@
 """Interface for Splitwise API using Typer"""
-from data_classes import Debt, ExpenseDebt, get_current_month
+from core import Debt, ExpenseDebt, get_current_month
 
 
 class Cli:
