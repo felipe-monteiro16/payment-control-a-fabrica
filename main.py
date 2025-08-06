@@ -103,5 +103,4 @@ def get_paid_debts():
 
 
 if __name__ == "__main__":
-    #get_user_debts(30400274)
     app()

@@ -6,6 +6,7 @@ from datetime import datetime, timezone, timedelta
 from dotenv import load_dotenv
 import mercadopago
 from core import Debt
+from logger import Logger
 
 
 class PaymentData:
@@ -115,33 +116,6 @@ class PaymentData:
         ]
 
 
-
-    def to_payment_json(self, user_id, preference_data, payment_link):
-        """Save the user debts to a json file"""
-        payment_json = []
-
-        if os.path.exists(self.json_filename):
-            with open(self.json_filename, "r", encoding="utf-8") as json_file:
-                try:
-                    payment_json = json.load(json_file)
-                except json.JSONDecodeError:
-                    payment_json = []
-
-        new_payment_entry = {
-            "user_id": user_id,
-            "external_reference": preference_data["external_reference"],
-            "link": payment_link,
-            "valor_total": self.total_value,
-            "vencimento": preference_data["expiration_date_to"]
-        }
-
-        payment_json.append(new_payment_entry)
-
-        # Save JSON to a file
-        with open("payment_data.json", "w", encoding="utf-8") as json_file:
-            json.dump(payment_json, json_file, ensure_ascii=False, indent=4)
-
-
 def create_payment_link(user_debts, user_id) -> tuple[str, list[Debt]]:
     """Get the payment link for the given user_id."""
     if not user_debts or not isinstance(user_debts, list):
@@ -187,8 +161,14 @@ def create_payment_link(user_debts, user_id) -> tuple[str, list[Debt]]:
             preference = preference_response["response"]
             payment_link = preference["init_point"]
 
-            # Create consolidated JSON with total
-            payment_data.to_payment_json(user_id, preference_data, payment_link)
+            # Log the payment link creation
+            Logger.log_payment_link(
+                user_id=user_id,
+                external_ref=external_reference,
+                payment_link=payment_link,
+                total_value=payment_data.total_value,
+                expiration=payment_data.expiration_to.isoformat()
+            )
             return payment_link, payment_data.user_debts
 
         # If the response is not 201, print the error and exit
