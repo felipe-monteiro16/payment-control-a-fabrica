@@ -4,6 +4,7 @@ import sys
 from dotenv import load_dotenv
 import requests
 from core import Debt, Contact, get_current_month
+from logger import Logger
 
 
 class MessageData:
@@ -32,7 +33,9 @@ class MessageData:
 
     def get_total_value(self) -> float:
         """Calculate the total value of the payment items."""
-        self.payment_items.append(Debt("Total", sum(item.value for item in self.payment_items)))
+        # Remove any existing "Total" entry
+        self.payment_items = [item for item in self.payment_items if item.label.lower() != "total"]
+        self.payment_items.append(Debt("Total", sum(float(item.value) for item in self.payment_items)))
 
 
     def align_payment_values(self) -> None:
@@ -129,6 +132,12 @@ def send_debt_to_user(
     response = requests.post(url, json=payload, headers=headers, timeout=10)
     if response.status_code == 200:
         print(f"Message sent successfully to {user_contact.name}.")
+        # Log the WhatsApp message
+        Logger.log_whatsapp_message(
+            contact=user_contact,
+            parameters=payload["template"]["components"][0]["parameters"],
+            payment_link=payment_link
+        )
     else:
         print(f"Failed to send message. Status code: {response.status_code}, "
               f"Response: {response.text}")

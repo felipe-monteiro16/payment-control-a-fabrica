@@ -1,7 +1,6 @@
 """Mercado Pago API integration for payment links."""
 import os
 import sys
-import json
 from datetime import datetime, timezone, timedelta
 from dotenv import load_dotenv
 import mercadopago

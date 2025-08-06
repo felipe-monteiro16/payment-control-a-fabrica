@@ -6,8 +6,8 @@ payment link creations, Splitwise entries) into separate JSON files within the '
 It ensures safe append operations and consistent data fo0rmatting.
 """
 import os
-from core import ExpenseDebt, Debt, Contact, ExpenseType
 import json
+from core import Contact
 
 # Define the log directory paths
 PAYMENT_LINK_LOG_PATH = "logs/payment_links.json" # Mercado Pago Payment Links
@@ -61,3 +61,19 @@ class Logger:
             "expiration": expiration
         }
         Logger._append_to_log(PAYMENT_LINK_LOG_PATH, log_entry)
+
+
+    @staticmethod
+    def log_whatsapp_message(
+        contact: Contact, parameters: dict, payment_link: str
+    ) -> None:
+        """Log the sending of a WhatsApp message."""
+        log_entry = {
+            "contact": {
+                "name": contact.name,
+                "phone_number": contact.phone_number
+            },
+            "parameters": parameters,
+            "payment_link": payment_link
+        }
+        Logger._append_to_log(WHATSAPP_LOG_PATH, log_entry)
