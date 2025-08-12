@@ -75,30 +75,7 @@ class PaymentData:
 
     def external_reference(self, user_id):
         """Set external reference to the payment"""
-        version = 1
-        external_reference = f"{user_id}_{self.current_month}_V{version}"
-        sdk = self.settings
-        # Get correct version
-        # Search for all payments
-        search_result = sdk.payment().search({})
-        # Filter the payments
-        filtered_payments = [
-            payment["external_reference"]
-            for payment in search_result["response"]["results"]
-            if (
-                payment["external_reference"] is not None and
-                payment["external_reference"].startswith(f"{user_id}_{self.current_month}_V")
-            )
-        ]
-        # Extract version numbers and find the maximum
-        versions = [
-            int(ref.split("_V")[-1]) for ref in filtered_payments if ref.startswith(f"{user_id}_{self.current_month}_V")
-        ]
-        if versions:
-            max_version = max(versions)
-            version = max_version + 1
-        else:
-            version = 1
+        external_reference = f"{user_id}_{self.current_month}"
         return external_reference
 
 
@@ -163,7 +140,7 @@ def create_payment_link(user_debts, user_id) -> tuple[str, list[Debt]]:
             # Log the payment link creation
             Logger.log_payment_link(
                 user_id=user_id,
-                external_ref=external_reference,
+                external_ref=preference["external_reference"],
                 payment_link=payment_link,
                 total_value=payment_data.total_value,
                 expiration=payment_data.expiration_to.isoformat()
