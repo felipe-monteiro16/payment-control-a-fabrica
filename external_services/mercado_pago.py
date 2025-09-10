@@ -165,8 +165,19 @@ def get_paid_debts() -> list[int]:
     payment_data = PaymentData()
     sdk = payment_data.settings
 
-    # Search for all payments
-    search_result = sdk.payment().search({})
+    # Today and 30 days ago
+    end_date = datetime.now()
+    start_date = end_date - timedelta(days=30)
+
+    # Format dates to ISO 8601 standard (e.g., "2025-09-10T00:00:00Z")
+    start_date_str = start_date.strftime("%Y-%m-%dT00:00:00Z")
+    end_date_str = end_date.strftime("%Y-%m-%dT23:59:59Z")
+
+    # Search for payments within the date range
+    search_result = sdk.payment().search({
+        "begin_date": start_date_str,
+        "end_date": end_date_str
+    })
 
     # Filter the payments
     filtered_payments = [

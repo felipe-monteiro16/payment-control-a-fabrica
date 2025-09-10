@@ -101,6 +101,5 @@ def get_paid_debts():
     # Send payments to Splitwise API
     data_access.send_payments(paid_users)
 
-
 if __name__ == "__main__":
     app()
