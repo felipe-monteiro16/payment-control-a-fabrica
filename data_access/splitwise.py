@@ -63,7 +63,7 @@ def get_all_users(client):
     for friend in friends:
         friend.id = friend.id or "Unknown"
         friend.first_name = friend.first_name or "Unknown"
-        friend.last_name = friend.last_name or "Unknown"
+        friend.last_name = friend.last_name or ""
         users.append(
             {
                 "id": friend.id,
